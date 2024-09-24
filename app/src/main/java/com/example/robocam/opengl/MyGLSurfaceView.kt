@@ -25,7 +25,6 @@ internal class MyGLSurfaceView(context: Context?, private val mCamera: MyCamera)
         val mtx = FloatArray(16)
         mSurface!!.updateTexImage()
         mSurface!!.getTransformMatrix(mtx)
-
         mDirectVideo!!.draw()
     }
 

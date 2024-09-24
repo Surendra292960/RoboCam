@@ -10,13 +10,15 @@ class MyCamera {
     private var mCameraParams: Camera.Parameters? = null
     private var running = false
 
+
+
     fun start(surface: SurfaceTexture?) {
         Log.v(LOG_TAG, "Starting Camera")
 
         mCamera = Camera.open(0)
-        mCameraParams = mCamera!!.getParameters()
-        Log.v(
-            LOG_TAG,
+        mCameraParams = mCamera!!.parameters
+        Log.d(
+            "Load Camera Data",
             mCameraParams!!.previewSize.width.toString() + " x " + mCameraParams!!.previewSize.height.toString()
         )
 
