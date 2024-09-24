@@ -126,5 +126,4 @@ fun JoyStick(
     }
 }
 
-private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> =
-    Pair(radius * cos(theta), radius * sin(theta))
+private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> = Pair(radius * cos(theta), radius * sin(theta))

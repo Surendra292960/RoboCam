@@ -8,10 +8,15 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,11 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.robocam.joystick.Battery
+import com.example.robocam.joystick.BatteryView
 import com.example.robocam.joystick.HomeScreen
 import com.example.robocam.joystick.JoyStick
 import com.example.robocam.opengl.MyCamera
 import com.example.robocam.opengl.MyGLSurfaceView
 import com.example.robocam.opengl.Permissions
+import com.example.robocam.ui.theme.PsGreen
 
 class MainActivity : ComponentActivity() {
     private var glSurfaceView: MyGLSurfaceView? = null
@@ -44,10 +52,23 @@ class MainActivity : ComponentActivity() {
 
 
                 CustomView(mCamera!!).also {
-                  Column(verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                      JetStickUI()
-                     // HomeScreen()
-                  }
+                    Box(modifier = Modifier
+                        .fillMaxSize(),
+                        contentAlignment = Alignment.Center){
+                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart))
+
+
+                        Battery(
+                            value = 50,
+                            color = PsGreen,
+                            modifier = Modifier.align(Alignment.TopStart)
+                                .size(30.dp),
+                            outerThickness = 20f,
+                            knobLength = 50f,
+                            totalBarSpace = 20f,
+                            steps = 10
+                        )
+                    }
                 }
             }
         }
@@ -85,7 +106,7 @@ fun CustomView(mCamera: MyCamera) {
 
 @Preview
 @Composable
-fun JetStickUI(){
+fun JetStickUI(modifier: Modifier = Modifier){
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
