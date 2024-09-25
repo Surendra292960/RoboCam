@@ -1,6 +1,7 @@
 package com.example.robocam.opengl
 
 import android.content.Context
+import android.graphics.PixelFormat
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
@@ -17,7 +18,8 @@ internal class MyGLSurfaceView(context: Context?, private val mCamera: MyCamera)
 
     init {
         setEGLContextClientVersion(2)
-
+        holder.setFormat(PixelFormat.TRANSLUCENT);
+        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         setRenderer(this)
     }
 

@@ -7,18 +7,17 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,8 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.robocam.joystick.Battery
-import com.example.robocam.joystick.BatteryView
-import com.example.robocam.joystick.HomeScreen
 import com.example.robocam.joystick.JoyStick
 import com.example.robocam.opengl.MyCamera
 import com.example.robocam.opengl.MyGLSurfaceView
@@ -38,6 +35,7 @@ class MainActivity : ComponentActivity() {
     private var glSurfaceView: MyGLSurfaceView? = null
     private var mCamera: MyCamera? = null
     private var mSurface: SurfaceTexture? = null
+    private val viewModel:MainViewModel by viewModels()
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier
                         .fillMaxSize(),
                         contentAlignment = Alignment.Center){
-                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart))
+                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
 
 
                         Battery(
@@ -73,6 +71,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     @Suppress("UNUSED_PARAMETER")
     private fun addAlbum(){
@@ -106,7 +105,7 @@ fun CustomView(mCamera: MyCamera) {
 
 @Preview
 @Composable
-fun JetStickUI(modifier: Modifier = Modifier){
+fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -115,9 +114,12 @@ fun JetStickUI(modifier: Modifier = Modifier){
         JoyStick(
             Modifier.padding(30.dp),
             size = 150.dp,
-            dotSize = 30.dp
+            dotSize = 30.dp,
+            viewModel = viewModel
         ) { x: Float, y: Float ->
+            viewModel.setCoordinates(x,y)
             Log.d("JoyStick", "$x, $y")
+            Log.d("TAG", "JoyStick Camera: $x, $y")
         }
     }
 }

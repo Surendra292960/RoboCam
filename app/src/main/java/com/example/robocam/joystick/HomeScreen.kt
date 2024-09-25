@@ -36,7 +36,6 @@ fun HomeScreen() {
     val scope = rememberCoroutineScope()
     val buttonSize = 90.dp
 
-
     // Swipe size in px
     val buttonSizePx = with(LocalDensity.current) { buttonSize.toPx() }
     val dragSizePx = buttonSizePx * 1.5f
@@ -55,7 +54,6 @@ fun HomeScreen() {
             offset = Offset(offsetX.value, offsetY.value),
             buttonSizePx = buttonSizePx
         )
-
         currentPosition = newPosition
     }
 

@@ -1,6 +1,9 @@
 package com.example.robocam.joystick
 
+import android.content.Context
 import android.util.Log
+import android.view.HapticFeedbackConstants
+import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -13,15 +16,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.AccessibilityManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import com.example.robocam.MainViewModel
 import com.example.robocam.R
 import kotlin.math.*
 
@@ -35,17 +44,22 @@ import kotlin.math.*
 @Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
-    size: Dp = 170.dp,
-    dotSize: Dp = 40.dp,
+    size: Dp = 150.dp,
+    dotSize: Dp = 30.dp,
     backgroundImage: Int = R.drawable.joystick_background_1,
     dotImage: Int = R.drawable.joystick_dot_1,
+    viewModel:MainViewModel,
     moved: (x: Float, y: Float) -> Unit = { _, _ -> }
 ) {
     Box(
-        modifier = modifier.clip(CircleShape)
+        modifier = modifier
+            .clip(CircleShape)
             .background(Color.LightGray)
             .size(size)
     ) {
+
+        val coordinates = viewModel.coordinates.collectAsState().value
+
         val maxRadius = with(LocalDensity.current) { (size / 2).toPx() }
         val centerX = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
         val centerY = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
@@ -58,12 +72,15 @@ fun JoyStick(
 
         var positionX by remember { mutableFloatStateOf(0f) }
         var positionY by remember { mutableFloatStateOf(0f) }
+        val view = LocalView.current
 
        /* Image(
             painterResource(id = backgroundImage),
             "JoyStickBackground",
             modifier = Modifier.size(size),
         )*/
+
+        Log.d("TAG", "JoyStick coordinatesData: $coordinates")
 
         Image(
             painterResource(id = dotImage),
@@ -77,6 +94,7 @@ fun JoyStick(
                 }
                 .size(dotSize)
                 .pointerInput(Unit) {
+                    Log.d("TAG", "JoyStick: centerXY $centerX, $centerY")
                     detectDragGestures(onDragEnd = {
                         offsetX = centerX
                         offsetY = centerY
@@ -85,8 +103,11 @@ fun JoyStick(
                         positionX = 0f
                         positionY = 0f
                     }) { pointerInputChange: PointerInputChange, offset: Offset ->
+                        Log.d("TAG", "JoyStick: Offset ${offset.x}, ${offset.y}")
                         val x = offsetX + offset.x - centerX
                         val y = offsetY + offset.y - centerY
+
+                        Log.d("TAG", "JoyStick: XY $x, $y")
 
                         pointerInputChange.consume()
 
@@ -116,10 +137,9 @@ fun JoyStick(
                     }
                 }
                 .onGloballyPositioned { coordinates ->
-                    Log.d("TAG", "JoyStick: $coordinates")
                     moved(
                         (coordinates.positionInParent().x - centerX) / maxRadius,
-                        -(coordinates.positionInParent().y - centerY) / maxRadius
+                        (coordinates.positionInParent().y - centerY) / maxRadius
                     )
                 },
         )
