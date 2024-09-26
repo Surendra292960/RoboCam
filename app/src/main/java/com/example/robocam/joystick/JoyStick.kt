@@ -1,9 +1,7 @@
 package com.example.robocam.joystick
 
-import android.content.Context
+import android.os.Handler
 import android.util.Log
-import android.view.HapticFeedbackConstants
-import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -16,20 +14,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.AccessibilityManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import com.example.robocam.MainViewModel
 import com.example.robocam.R
 import kotlin.math.*
@@ -41,6 +34,11 @@ import kotlin.math.*
  * @param backgroundImage Joystick Image Drawable
  * @param dotImage Joystick Dot Image Drawable
  */
+
+private var movementHandler: Handler = Handler()
+private var isMoving = false
+private var movementRunnable: Runnable? = null
+
 @Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
@@ -72,7 +70,8 @@ fun JoyStick(
 
         var positionX by remember { mutableFloatStateOf(0f) }
         var positionY by remember { mutableFloatStateOf(0f) }
-        val view = LocalView.current
+
+
 
        /* Image(
             painterResource(id = backgroundImage),
@@ -102,6 +101,8 @@ fun JoyStick(
                         theta = 0f
                         positionX = 0f
                         positionY = 0f
+
+                        stopContinuousMovement()
                     }) { pointerInputChange: PointerInputChange, offset: Offset ->
                         Log.d("TAG", "JoyStick: Offset ${offset.x}, ${offset.y}")
                         val x = offsetX + offset.x - centerX
@@ -123,10 +124,13 @@ fun JoyStick(
 
                         radius = sqrt((x.pow(2)) + (y.pow(2)))
 
+                        checkContinuousMovement(x, y, radius)
+
                         offsetX += offset.x
                         offsetY += offset.y
 
                         if (radius > maxRadius) {
+                            Log.d("TAG", "JoyStick radius: $radius, $maxRadius")
                             polarToCartesian(maxRadius, theta)
                         } else {
                             polarToCartesian(radius, theta)
@@ -147,3 +151,46 @@ fun JoyStick(
 }
 
 private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> = Pair(radius * cos(theta), radius * sin(theta))
+
+
+private fun checkContinuousMovement(dx: Float, dy: Float, radius: Float) {
+
+    val distance = sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+
+    Log.d("TAG", "JoyStick radius: $distance, ${radius * 0.9}")
+    if (distance >= radius * 0.9) { // Near edge
+        if (!isMoving) {
+            Log.d("TAG", "checkContinuousMovement: Start ")
+            startContinuousMovement(dx, dy)
+        }
+    } else {
+        Log.d("TAG", "checkContinuousMovement: Stop ")
+        stopContinuousMovement()
+    }
+}
+
+private fun startContinuousMovement(dx: Float, dy: Float) {
+    isMoving = true
+    movementRunnable = object : Runnable {
+        override fun run() {
+            // Perform movement logic here
+            // Example: Log.d("Joystick", "Moving: dx: $dx, dy: $dy")
+
+            Log.d("TAG", "startContinuousMovement:Joystick Moving: dx: $dx, dy: $dy")
+         /*   getStickPosition().also {
+                Log.d("TAG", "startContinuousMovement:Joystick ${it.first} ${it.second}")
+            }*/
+
+            movementHandler.postDelayed(this, 100) // Adjust the delay as needed
+        }
+    }
+    movementHandler.post(movementRunnable!!)
+}
+
+private fun stopContinuousMovement() {
+    isMoving = false
+    if (movementRunnable!=null){
+        movementHandler.removeCallbacks(movementRunnable!!)
+    }
+    Log.d("TAG", "stopContinuousMovement: ")
+}
