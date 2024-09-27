@@ -17,6 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,7 +51,7 @@ class MainActivity : ComponentActivity() {
             Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
                 addAlbum()
 
-
+                var direction by remember { mutableStateOf("Idle") }
                 CustomView(mCamera!!).also {
                     Box(modifier = Modifier
                         .fillMaxSize(),
@@ -58,7 +62,8 @@ class MainActivity : ComponentActivity() {
                         Battery(
                             value = 50,
                             color = PsGreen,
-                            modifier = Modifier.align(Alignment.TopStart)
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
                                 .size(30.dp),
                             outerThickness = 20f,
                             knobLength = 50f,
@@ -117,10 +122,8 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
             viewModel = viewModel
         ) { x: Float, y: Float ->
             viewModel.setCoordinates(x,y)
-            Log.d("JoyStick", "$x, $y")
             Log.d("TAG", "JoyStick Camera: $x, $y")
         }
-
     }
 }
 
