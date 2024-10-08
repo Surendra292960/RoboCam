@@ -1,9 +1,16 @@
 package com.example.robocam.opengl
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.hardware.camera2.CameraAccessException
+import android.hardware.camera2.CameraDevice
+import android.hardware.camera2.CameraManager
 import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
 import java.io.IOException
+
 
 class MyCamera {
     private var mCamera: Camera? = null
@@ -43,4 +50,28 @@ class MyCamera {
     companion object {
         private const val LOG_TAG = "MyCamera"
     }
+
+/*    @SuppressLint("MissingPermission")
+    private fun startCamera() {
+        val manager = getSystemService(Context.CAMERA_SERVICE) as CameraManager?
+        try {
+            val cameraId = manager!!.cameraIdList[0] // Get the first camera
+            manager.openCamera(cameraId, object : CameraDevice.StateCallback() {
+                override fun onOpened(camera: CameraDevice) {
+                    // Start capturing frames
+                }
+
+                override fun onDisconnected(camera: CameraDevice) {
+                    camera.close()
+                }
+
+                override fun onError(camera: CameraDevice, error: Int) {
+                    camera.close()
+                }
+            }, null)
+        } catch (e: CameraAccessException) {
+            e.printStackTrace()
+        }
+    }*/
 }
+
