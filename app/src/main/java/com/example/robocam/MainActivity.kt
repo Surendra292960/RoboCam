@@ -6,6 +6,7 @@ import android.Manifest
 import android.graphics.SurfaceTexture
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -28,7 +30,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.robocam.joystick.Battery
-import com.example.robocam.joystick.Joystick
+import com.example.robocam.joystick.JoyStick
+import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.MyCamera
 import com.example.robocam.opengl.MyGLSurfaceView
 import com.example.robocam.opengl.Permissions
@@ -115,7 +118,13 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Joystick()
+        var joystickCoordinates by remember { mutableStateOf("X: 0, Y: 0") }
+
+        JoyStickController { coordinates ->
+            joystickCoordinates = coordinates // Update the coordinates in the parent
+            Log.d("TAG", "JetStickUI: $coordinates")
+        }
+
        /* JoyStick(
             Modifier.padding(30.dp),
             size = 150.dp,

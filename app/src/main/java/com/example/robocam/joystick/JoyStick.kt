@@ -1,20 +1,17 @@
 package com.example.robocam.joystick
 
 import android.util.Log
-import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -24,16 +21,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.robocam.MainViewModel
+import com.example.robocam.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.atan
+import kotlin.math.cos
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -43,7 +56,7 @@ import kotlin.math.sqrt
  * @param backgroundImage Joystick Image Drawable
  * @param dotImage Joystick Dot Image Drawable*/
 
-/*@Composable
+@Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
     size: Dp = 150.dp,
@@ -190,10 +203,10 @@ fun JoyStick(
                 .onGloballyPositioned { coordinates ->
                     availableCoordinates = Pair((coordinates.positionInParent().x - centerX) / maxRadius, (coordinates.positionInParent().y - centerY) / maxRadius)
                     //moved(availableCoordinates.first, availableCoordinates.second)
-                    *//*moved(
+                    moved(
                         (coordinates.positionInParent().x - centerX) / maxRadius,
                         (coordinates.positionInParent().y - centerY) / maxRadius
-                    )*//*
+                    )
                 },
         )
     }
@@ -201,83 +214,10 @@ fun JoyStick(
 
 
 private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> =
-    Pair(radius * cos(theta), radius * sin(theta))*/
+    Pair(radius * cos(theta), radius * sin(theta))
 
 
-@Composable
-fun Joystick() {
-    var joystickOffset by remember { mutableStateOf(Offset(150f, 150f)) } // Start at center
-    var coordinates by remember { mutableStateOf("X: 0, Y: 0") }
-    val circleRadius = 100f
-    val joystickRadius = 20f // Radius of the joystick itself
-    val center = Offset(150f, 150f)
 
-    Box(
-        modifier = Modifier
-            .size(300.dp)
-            .background(Color.LightGray)
-            .pointerInput(Unit) {
-                detectDragGestures(onDragEnd = {
-                    joystickOffset = center
-                    coordinates = "X: 0, Y: 0"
-                })
-                { pointerInputChange:PointerInputChange, offset:Offset ->
-                    pointerInputChange.consume()
-                    val newOffset = joystickOffset + offset
-
-                    // Calculate distance from center
-                    val distance = center.distance(newOffset)
-
-                    // Ensure the joystick remains within the circle boundaries
-                    if (distance <= circleRadius - joystickRadius) {
-                        joystickOffset = newOffset
-                    } else {
-                        // Scale the newOffset to the circle's boundary minus joystick radius
-                        val direction = (newOffset - center).normalize()
-                        joystickOffset = center + direction * (circleRadius - joystickRadius)
-                    }
-
-                    // Update coordinates
-                    coordinates = "X: ${joystickOffset.x.toInt()}, Y: ${joystickOffset.y.toInt()}"
-                }
-            }
-    ) {
-        // Draw the circle and joystick
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(
-                color = Color.Blue,
-                radius = circleRadius,
-                center = center
-            )
-            drawCircle(
-                color = Color.Red,
-                radius = 20f,
-                center = joystickOffset
-            )
-        }
-
-        // Display coordinates
-        Text(
-            text = coordinates,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(16.dp),
-            color = Color.Black,
-            fontSize = 16.sp
-        )
-    }
-}
-
-// Extension function to calculate distance between two offsets
-fun Offset.distance(offset: Offset): Float {
-    return sqrt((x - offset.x).pow(2) + (y - offset.y).pow(2))
-}
-
-// Extension function to normalize an Offset
-fun Offset.normalize(): Offset {
-    val length = sqrt(x.pow(2) + y.pow(2))
-    return if (length != 0f) Offset(x / length, y / length) else Offset(0f, 0f)
-}
 
 
 
