@@ -120,9 +120,9 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
     ) {
         var joystickCoordinates by remember { mutableStateOf("X: 0, Y: 0") }
 
-        JoyStickController() { coordinates ->
-            joystickCoordinates = coordinates // Update the coordinates in the parent
-            Log.d("TAG", "JetStickUI: $coordinates")
+        JoyStickController() { x, y ->
+           // joystickCoordinates = coordinates // Update the coordinates in the parent
+            Log.d("TAG", "JetStickUI: $x, $y")
         }
 
        /* JoyStick(

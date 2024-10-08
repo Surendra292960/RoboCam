@@ -41,21 +41,15 @@ import kotlin.math.sqrt
 var job: Job? = null
 
 @Composable
-fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
-    var coordinates by remember { mutableStateOf("X: 0, Y: 0") }
+fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
+    var coordinates by remember { mutableStateOf(Offset(0f,0f)) }
     var joystickOffset by remember { mutableStateOf(Offset(150f, 150f)) } // Start at center
     val circleRadius = 180f
     val joystickRadius = 70f // Radius of the joystick itself
     val center = Offset(150f, 150f)
     val haptic = LocalHapticFeedback.current
-    val context = LocalContext.current
     var radius by remember { mutableFloatStateOf(0f) }
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    var offsetY by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
-
-    var x = 0f
-    var y = 0f
 
 
     Box(
@@ -68,15 +62,15 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
                         cancelJob()
                         isDragging = false
                         joystickOffset = center
-                        coordinates = "X: 0, Y: 0"
-                        onCoordinatesChange(coordinates)  // Reset coordinates
+                        coordinates = Offset(0f, 0f)
+                        onCoordinatesChange(coordinates.x, coordinates.y)  // Reset coordinates
                     },
                     onDragCancel = {
                         cancelJob()
                         isDragging = false
                         joystickOffset = center
-                        coordinates = "X: 0, Y: 0"
-                        onCoordinatesChange(coordinates)  // Reset coordinates
+                        coordinates = Offset(0f, 0f)
+                        onCoordinatesChange(coordinates.x, coordinates.y)  // Reset coordinates
                     }
                 ) { change, dragAmount ->
                     isDragging = true
@@ -106,11 +100,6 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
                         circleRadius - joystickRadius
                     )
 
-                    x = offsetX + dragAmount.x - center.x
-                    y = offsetY + dragAmount.y - center.y
-
-                    radius = sqrt((x.pow(2)) + (y.pow(2)))
-
                     Log.d("TAG", "JoyStickController radius : $radius")
 
                     if (isDragging) {
@@ -118,14 +107,29 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
                             Log.d("TAG", "JoyStickController Job start  : ${job!!.isActive}")
                             while (job!!.isActive) {
                                 delay(10)
-                                if (job!!.isActive){
-                                    coordinates = "X: ${normalizedCoordinates.first}, Y: ${normalizedCoordinates.second}"
-                                    onCoordinatesChange(coordinates) // Invoke the callback
-                                    Log.d("TAG", "JoyStickController Job started alone if : $radius")
-                                }else{
-                                    coordinates = "X: ${0f}, Y: ${0f}"
-                                    onCoordinatesChange(coordinates) // Invoke the callback
-                                    Log.d("TAG", "JoyStickController Job started alone  else : $radius")
+                                if (job!!.isActive) {
+                                    coordinates = Offset(
+                                        normalizedCoordinates.first,
+                                        normalizedCoordinates.second
+                                    )
+                                    onCoordinatesChange(
+                                        coordinates.x,
+                                        coordinates.y
+                                    )  // Invoke the callback
+                                    Log.d(
+                                        "TAG",
+                                        "JoyStickController Job started alone if : $radius"
+                                    )
+                                } else {
+                                    coordinates = Offset(0f, 0f)
+                                    onCoordinatesChange(
+                                        coordinates.x,
+                                        coordinates.y
+                                    )  // Invoke the callback
+                                    Log.d(
+                                        "TAG",
+                                        "JoyStickController Job started alone  else : $radius"
+                                    )
                                 }
                             }
                         }
@@ -143,15 +147,12 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
             )) {
             drawCircle(color = Color.LightGray, radius = circleRadius, center = center)
 
-            drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset).apply {
-                ImageVector
-            }
+            drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset)
         }
-
 
         // Display coordinates
         Text(
-            text = coordinates,
+            text = "X = ${coordinates.x}, Y = ${coordinates.y}",
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(16.dp),
@@ -163,8 +164,8 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
         Button(
             onClick = {
                 joystickOffset = center
-                coordinates = "X: 0, Y: 0"
-                onCoordinatesChange(coordinates) // Reset coordinates
+                coordinates = Offset(0f, 0f)
+                onCoordinatesChange(coordinates.x, coordinates.y) // Reset coordinates
             },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -178,7 +179,6 @@ fun JoyStickController(onCoordinatesChange: (String) -> Unit) {
 fun cancelJob() {
     CoroutineScope(IO).launch {
         job!!.cancelAndJoin()
-        job=null
         Log.d("TAG", "JoyStickController isActive Job : ${job!!.isActive}")
     }
 }
