@@ -4,6 +4,7 @@ package com.example.robocam
 //import com.example.robocam.joystick.JoyStick
 import android.Manifest
 import android.graphics.SurfaceTexture
+import android.opengl.GLSurfaceView
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -30,24 +30,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.robocam.joystick.Battery
-import com.example.robocam.joystick.JoyStick
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.MyCamera
-import com.example.robocam.opengl.MyGLSurfaceView
 import com.example.robocam.opengl.Permissions
 import com.example.robocam.ui.theme.PsGreen
 
 class MainActivity : ComponentActivity() {
-    private var glSurfaceView: MyGLSurfaceView? = null
+    private var glSurfaceView: GLSurfaceView? = null
     private var mCamera: MyCamera? = null
     private var mSurface: SurfaceTexture? = null
     private val viewModel:MainViewModel by viewModels()
+
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mCamera = MyCamera()
-        glSurfaceView = MyGLSurfaceView(this, mCamera!!)
+        glSurfaceView = MyGLSurfaceView(this, /*mCamera!!*/)
         setContentView(glSurfaceView)
 
         setContent {
@@ -99,7 +98,7 @@ fun CustomView(mCamera: MyCamera) {
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             // Creates view
-            MyGLSurfaceView(context, mCamera).apply {
+            MyGLSurfaceView(context).apply {
 
             }
         },

@@ -1,14 +1,8 @@
 package com.example.robocam.opengl
 
-import android.annotation.SuppressLint
-import android.content.Context
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
-import android.hardware.camera2.CameraAccessException
-import android.hardware.camera2.CameraDevice
-import android.hardware.camera2.CameraManager
 import android.util.Log
-import androidx.core.content.ContextCompat.getSystemService
 import java.io.IOException
 
 

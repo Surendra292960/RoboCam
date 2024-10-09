@@ -13,7 +13,6 @@ import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,13 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.robocam.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
@@ -39,7 +38,9 @@ import kotlin.math.sqrt
 
 
 var job: Job? = null
+var innerCircleColor:Color = Color.Gray
 
+var distance:Float = 0f
 @Composable
 fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
     var coordinates by remember { mutableStateOf(Offset(0f,0f)) }
@@ -48,7 +49,6 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
     val joystickRadius = 70f // Radius of the joystick itself
     val center = Offset(150f, 150f)
     val haptic = LocalHapticFeedback.current
-    var radius by remember { mutableFloatStateOf(0f) }
     var isDragging by remember { mutableStateOf(false) }
 
 
@@ -78,14 +78,17 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                     val newOffset = joystickOffset + dragAmount
 
                     // Calculate distance from center
-                    val distance = center.distance(newOffset)
+                    distance = center.distance(newOffset)
 
                     // Ensure the joystick remains within the circle boundaries
                     if (distance <= circleRadius - joystickRadius) {
                         Log.d("TAG", "JoyStickController: distance lesser $distance")
                         joystickOffset = newOffset
+                        innerCircleColor = Color.Gray
                     } else {
                         Log.d("TAG", "JoyStickController: distance greater $distance")
+                        // Change the color of the inner circle when at the edge
+                        innerCircleColor = Color.Red
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
 
                         // Scale the newOffset to the circle's boundary minus joystick radius
@@ -99,8 +102,6 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                         center,
                         circleRadius - joystickRadius
                     )
-
-                    Log.d("TAG", "JoyStickController radius : $radius")
 
                     if (isDragging) {
                         job = CoroutineScope(IO).launch {
@@ -116,20 +117,14 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                                         coordinates.x,
                                         coordinates.y
                                     )  // Invoke the callback
-                                    Log.d(
-                                        "TAG",
-                                        "JoyStickController Job started alone if : $radius"
-                                    )
+                                    Log.d("TAG", "JoyStickController Job started alone if : ")
                                 } else {
                                     coordinates = Offset(0f, 0f)
                                     onCoordinatesChange(
                                         coordinates.x,
                                         coordinates.y
                                     )  // Invoke the callback
-                                    Log.d(
-                                        "TAG",
-                                        "JoyStickController Job started alone  else : $radius"
-                                    )
+                                    Log.d("TAG", "JoyStickController Job started alone  else : ")
                                 }
                             }
                         }
@@ -137,6 +132,8 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                 }
             }
     ) {
+        var image = painterResource(id = R.drawable.joystick_dot_1)
+        var icon = painterResource(id = R.drawable.joystick_background_1) // Add your icon resource
         // Draw the circle and joystick
         Canvas(modifier = Modifier
             .fillMaxSize()
@@ -147,7 +144,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
             )) {
             drawCircle(color = Color.LightGray, radius = circleRadius, center = center)
 
-            drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset)
+            drawCircle(color = innerCircleColor, radius = joystickRadius, center = joystickOffset)
         }
 
         // Display coordinates
@@ -178,6 +175,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
 
 fun cancelJob() {
     CoroutineScope(IO).launch {
+        innerCircleColor = Color.Gray
         job!!.cancelAndJoin()
         Log.d("TAG", "JoyStickController isActive Job : ${job!!.isActive}")
     }
