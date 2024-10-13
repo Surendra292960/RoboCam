@@ -1,8 +1,4 @@
 package com.example.robocam
-
-//import com.example.robocam.joystick.JoystickController
-//import com.example.robocam.joystick.JoyStick
-//import Joystick
 import android.Manifest
 import android.graphics.SurfaceTexture
 import android.opengl.GLSurfaceView
@@ -30,8 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.MyCamera
-import com.example.robocam.opengl.MyGLSurfaceView
 import com.example.robocam.opengl.Permissions
+import com.example.robocam.opengl.robo_cam.MyGLSurfaceView
 
 class MainActivity : ComponentActivity() {
     private var glSurfaceView: GLSurfaceView? = null
@@ -44,7 +40,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mCamera = MyCamera()
-        glSurfaceView = MyGLSurfaceView(this, mCamera!!)
+        glSurfaceView = MyGLSurfaceView(this, mCamera!!, true)
         setContentView(glSurfaceView)
 
         setContent {
@@ -57,19 +53,6 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize(),
                         contentAlignment = Alignment.Center){
                         JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-
-
-                      /*  Battery(
-                            value = 50,
-                            color = PsGreen,
-                            modifier = Modifier
-                                .align(Alignment.TopStart)
-                                .size(30.dp),
-                            outerThickness = 20f,
-                            knobLength = 50f,
-                            totalBarSpace = 20f,
-                            steps = 10
-                        )*/
                     }
                 }
             }
@@ -96,7 +79,7 @@ fun CustomView(mCamera: MyCamera) {
         modifier = Modifier.fillMaxSize(),
         factory = { context ->
             // Creates view
-            MyGLSurfaceView(context, mCamera).apply {
+            MyGLSurfaceView(context, mCamera, true).apply {
 
             }
         },
