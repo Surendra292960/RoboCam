@@ -1,3 +1,4 @@
+/*
 package com.example.robocam
 
 import android.content.Context
@@ -7,7 +8,7 @@ import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.Matrix
-import com.example.robocam.opengl.MyGLSurfaceView.Companion.loadShader
+import com.example.robocam.opengl.robo_cam.MyGLSurfaceView.Companion.loadShader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -66,11 +67,13 @@ class MyGLSurfaceView(context: Context) : GLSurfaceView(context), GLSurfaceView.
     override fun onSurfaceChanged(unused: GL10, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
 
-        /*val ratio: Float = width.toFloat() / height.toFloat()
+        */
+/*val ratio: Float = width.toFloat() / height.toFloat()
 
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
-        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)*/
+        Matrix.frustumM(projectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)*//*
+
     }
 }
 
@@ -158,4 +161,4 @@ class Triangle {
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(positionHandle)
     }
-}
+}*/
