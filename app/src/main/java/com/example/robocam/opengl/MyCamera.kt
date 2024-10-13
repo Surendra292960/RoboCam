@@ -8,7 +8,7 @@ import java.io.IOException
 
 class MyCamera {
     private var mCamera: Camera? = null
-    private var mCameraParams: Camera.Parameters? = null
+    var mCameraParams: Camera.Parameters? = null
     private var running = false
 
 

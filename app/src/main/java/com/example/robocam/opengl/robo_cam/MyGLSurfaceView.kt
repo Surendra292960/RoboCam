@@ -74,10 +74,11 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
             textureID = data.id.toInt()
             textureWidth = data.width
             textureHeight = data.height*/
-            textureID = createTexture()
-            mSurface = SurfaceTexture(textureID)
-            mSurface?.updateTexImage()
-            client.start(mSurface)
+            client.mCameraParams?.let {
+                textureWidth = it.previewSize.width
+                textureHeight = it.previewSize?.height!!
+            }
+
             render()
             // Check for OpenGL errors
             checkGLError()
@@ -89,6 +90,10 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         Log.v("LOG_TAG", "Surface Changed")
         GLES20.glViewport(0, 0, width, height)
+        textureID = createTexture()
+        mSurface = SurfaceTexture(textureID)
+        mSurface?.updateTexImage()
+        client.start(mSurface)
         // Check for OpenGL errors
         checkGLError()
     }
@@ -148,8 +153,9 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
 
     private fun render() {
 
-        Log.d("TAG", "render glBindTexture : $textureID")
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        Log.d("TAG", "render glBindTexture : $textureID  $textureWidth  $textureHeight")
+        GLES20.glClearColor(0.1f, 0.1f, 0.1f, 0f)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
         // Use program
         GLES20.glUseProgram(program)
         // Check for OpenGL errors
