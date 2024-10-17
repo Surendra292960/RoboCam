@@ -3,9 +3,7 @@ package com.example.robocam.joystick
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -27,29 +24,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.PaintingStyle
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.robocam.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.security.AccessController.getContext
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -65,8 +57,16 @@ var distance:Float = 0f
 fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
     var coordinates by remember { mutableStateOf(Offset(0f,0f)) }
     var joystickOffset by remember { mutableStateOf(Offset(150f, 150f)) } // Start at center
-    val circleRadius = 180f
-    val joystickRadius = 70f // Radius of the joystick itself
+    // Maybe store this in a static field?
+    val SCALE: Float = LocalContext.current.resources.displayMetrics.density
+    // Convert dips to pixels
+    val circleRadiusDips =80f
+    val circleRadius = (circleRadiusDips * SCALE + 0.5f) // 0.5f for rounding
+    //val circleRadius = 180f
+    // Convert dips to pixels
+    val joystickRadiusDips =30f
+    val joystickRadius = (joystickRadiusDips * SCALE + 0.5f) // 0.5f for rounding
+    //val joystickRadius = 70f // Radius of the joystick itself
     val center = Offset(150f, 150f)
     val haptic = LocalHapticFeedback.current
     var isDragging by remember { mutableStateOf(false) }
@@ -151,12 +151,6 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                 }
             }
         }) {
-        var image = painterResource(id = R.drawable.joystick_dot_1)
-        var icon = painterResource(id = R.drawable.joystick_background_1) // Add your icon resource
-
-        val vector = ImageVector.vectorResource(id = R.drawable.ic_launcher_foreground)
-        val painter = rememberVectorPainter(image = vector)
-
 
         // Draw the circle and joystick
         Box(
@@ -177,7 +171,10 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                     // Calculate the distance from the center to the joystick
                     val distance = (joystickOffset - center).getDistance()
 
-                    val angle = atan2(joystickOffset.y - center.y, joystickOffset.x - center.x) * (180 / PI.toFloat())
+                    val angle = atan2(
+                        joystickOffset.y - center.y,
+                        joystickOffset.x - center.x
+                    ) * (180 / PI.toFloat())
                     val startAngle = angle - 30f
                     val sweepAngle = 60f
 
@@ -195,12 +192,29 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                     if (isDragging) {
                         Log.d("TAG", "JoyStickController drawBehind : ")
                         //haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                         drawPath(
+                        drawPath(
                             path = path,
                             color = Color.Cyan,
                             //style = Stroke(width = 5f)
-                             style = Stroke(width = 20f, pathEffect = PathEffect.cornerPathEffect(joystickRadius), cap = StrokeCap.Round),
+                            style = Stroke(
+                                width = 20f,
+                                pathEffect = PathEffect.cornerPathEffect(joystickRadius),
+                                cap = StrokeCap.Round
+                            ),
                         )
+
+                    /*    val centerX = size.width / 2f
+                        val centerY = size.height / 2f
+                        val radius = minOf(centerX, centerY)
+
+                        drawArc(
+                            color = Color.Yellow,
+                            startAngle = 0f,
+                            sweepAngle = 360f,
+                            useCenter = false,
+                            topLeft = Offset(centerX - radius, centerY - radius),
+                            size = Size(radius * 2, radius * 2)
+                        )*/
                     }
                 }
         )

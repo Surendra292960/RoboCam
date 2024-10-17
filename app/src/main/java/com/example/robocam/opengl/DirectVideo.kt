@@ -1,7 +1,12 @@
 package com.example.robocam.opengl
 
+import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
+import com.example.robocam.utils.Utility.checkFramebufferStatus
+import com.example.robocam.utils.Utility.checkGLError
+import com.example.robocam.utils.Utility.compileShader
+import com.example.robocam.utils.Utility.glLinkProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -31,6 +36,7 @@ class DirectVideo(private val texture: Int) {
     private val mProgram: Int
     private var mPositionHandle = 0
     private var mTextureCoordHandle = 0
+
 
     private val drawOrder = shortArrayOf(0, 1, 2, 0, 2, 3) // order to draw vertices
 
@@ -65,6 +71,7 @@ class DirectVideo(private val texture: Int) {
         GLES20.glAttachShader(mProgram, vertexShader) // add the vertex shader to program
         GLES20.glAttachShader(mProgram, fragmentShader) // add the fragment shader to program
         GLES20.glLinkProgram(mProgram) // creates OpenGL ES program executables
+
     }
 
     fun draw() {

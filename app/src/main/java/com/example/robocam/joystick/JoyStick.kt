@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -56,165 +57,171 @@ import kotlin.math.sqrt
  * @param backgroundImage Joystick Image Drawable
  * @param dotImage Joystick Dot Image Drawable*/
 
+@Preview
+@Composable
+fun PreviewScreen(){
+    JoyStick(viewModel = MainViewModel())
+}
+
 @Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
     size: Dp = 150.dp,
-    dotSize: Dp = 30.dp,
-    backgroundImage: Int = R.drawable.joystick_background_1,
-    dotImage: Int = R.drawable.joystick_dot_1,
+    dotSize: Dp = 70.dp,
     viewModel: MainViewModel,
     moved: (x: Float, y: Float) -> Unit = { _, _ -> }
 ) {
-    Box(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(Color.LightGray)
-            .size(size)
-    ) {
 
-        var availableCoordinates by remember { mutableStateOf(Pair(0f, 0f)) }
+    var availableCoordinates by remember { mutableStateOf(Pair(0f, 0f)) }
 
-        var joystickOffset by remember { mutableStateOf(Offset.Zero) }
+    var joystickOffset by remember { mutableStateOf(Offset.Zero) }
 
-        val maxRadius = with(LocalDensity.current) { (size / 2).toPx() }
-        val centerX = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
-        val centerY = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
+    val maxRadius = with(LocalDensity.current) { (size / 2).toPx() }
+    val centerX = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
+    val centerY = with(LocalDensity.current) { ((size - dotSize) / 2).toPx() }
 
-        var offsetX by remember { mutableFloatStateOf(centerX) }
-        var offsetY by remember { mutableFloatStateOf(centerY) }
+    var offsetX by remember { mutableFloatStateOf(centerX) }
+    var offsetY by remember { mutableFloatStateOf(centerY) }
 
-        var radius by remember { mutableFloatStateOf(0f) }
-        var theta by remember { mutableFloatStateOf(0f) }
+    var radius by remember { mutableFloatStateOf(0f) }
+    var theta by remember { mutableFloatStateOf(0f) }
 
-        var positionX by remember { mutableFloatStateOf(0f) }
-        var positionY by remember { mutableFloatStateOf(0f) }
-        val view = LocalView.current
-        var isDragging by remember { mutableStateOf(false) }
+    var positionX by remember { mutableFloatStateOf(0f) }
+    var positionY by remember { mutableFloatStateOf(0f) }
+    val view = LocalView.current
+    var isDragging by remember { mutableStateOf(false) }
 
-        Image(
-            painterResource(id = backgroundImage),
-            "JoyStickBackground",
-            modifier = Modifier.size(size),
-        )
+    Box(modifier = modifier
+        .size(400.dp)
+        .background(Color.White)
+        .pointerInput(Unit) {
+            Log.d("TAG", "JoyStick: centerXY $centerX, $centerY")
+            detectDragGestures(
+                onDragEnd = {
+                    offsetX = centerX
+                    offsetY = centerY
+                    radius = 0f
+                    theta = 0f
+                    positionX = 0f
+                    positionY = 0f
+                    isDragging = false
+                    moved(0f, 0f) // Stop movement
+                },
+                onDragCancel = {
+                    offsetX = centerX
+                    offsetY = centerY
+                    radius = 0f
+                    theta = 0f
+                    positionX = 0f
+                    positionY = 0f
+                    isDragging = false
+                    moved(0f, 0f) // Stop movement
+                }) { pointerInputChange: PointerInputChange, offset: Offset ->
+                isDragging = true
+                Log.d("TAG", "JoyStick: Offset ${offset.x}, ${offset.y}")
+                val x = offsetX + offset.x - centerX
+                val y = offsetY + offset.y - centerY
 
-       // Log.d("TAG", "JoyStick coordinatesData: $coordinates")
-        Log.d("TAG", "JoyStick maxRadius: $maxRadius")
+                Log.d("TAG", "JoyStick: XY $x, $y")
 
-        Image(
-            painterResource(id = dotImage),
-            "JoyStickDot",
-            modifier = Modifier
-                .offset {
-                    IntOffset(
-                        (positionX + centerX).roundToInt(),
-                        (positionY + centerY).roundToInt()
-                    )
+                pointerInputChange.consume()
+
+                theta = if (x >= 0 && y >= 0) {
+                    atan(y / x)
+                } else if (x < 0 && y >= 0) {
+                    (Math.PI).toFloat() + atan(y / x)
+                } else if (x < 0 && y < 0) {
+                    -(Math.PI).toFloat() + atan(y / x)
+                } else {
+                    atan(y / x)
                 }
-                .size(dotSize)
-                .pointerInput(Unit) {
-                    Log.d("TAG", "JoyStick: centerXY $centerX, $centerY")
-                    detectDragGestures(
-                        onDragEnd = {
-                            offsetX = centerX
-                            offsetY = centerY
-                            radius = 0f
-                            theta = 0f
-                            positionX = 0f
-                            positionY = 0f
-                            isDragging = false
-                            moved(0f, 0f) // Stop movement
-                        },
-                        onDragCancel = {
-                            offsetX = centerX
-                            offsetY = centerY
-                            radius = 0f
-                            theta = 0f
-                            positionX = 0f
-                            positionY = 0f
-                            isDragging = false
-                            moved(0f, 0f) // Stop movement
-                        }) { pointerInputChange: PointerInputChange, offset: Offset ->
-                        isDragging = true
-                        Log.d("TAG", "JoyStick: Offset ${offset.x}, ${offset.y}")
-                        val x = offsetX + offset.x - centerX
-                        val y = offsetY + offset.y - centerY
 
-                        Log.d("TAG", "JoyStick: XY $x, $y")
+                radius = sqrt((x.pow(2)) + (y.pow(2)))
 
-                        pointerInputChange.consume()
+                offsetX += offset.x
+                offsetY += offset.y
 
-                        theta = if (x >= 0 && y >= 0) {
-                            atan(y / x)
-                        } else if (x < 0 && y >= 0) {
-                            (Math.PI).toFloat() + atan(y / x)
-                        } else if (x < 0 && y < 0) {
-                            -(Math.PI).toFloat() + atan(y / x)
-                        } else {
-                            atan(y / x)
-                        }
+                if (radius > maxRadius) {
+                    polarToCartesian(maxRadius, theta)
+                } else {
+                    polarToCartesian(radius, theta)
+                }.apply {
+                    positionX = first
+                    positionY = second
 
-                        radius = sqrt((x.pow(2)) + (y.pow(2)))
+                    Log.d("TAG", "JoyStick offsetXY: $offsetX, $offsetY")
+                    Log.d("TAG", "JoyStick positionXY: $positionX, $positionY")
+                }
 
-                        offsetX += offset.x
-                        offsetY += offset.y
+                // Calculate the new offset
+                joystickOffset = Offset(
+                    x = offsetX + offset.x - centerX,
+                    y = offsetY + offset.y - centerY
+                )
 
-                        if (radius > maxRadius) {
-                            polarToCartesian(maxRadius, theta)
-                        } else {
-                            polarToCartesian(radius, theta)
-                        }.apply {
-                            positionX = first
-                            positionY = second
+                Log.d("TAG", "JoyStick joystickOffset: ${positionX + centerX}, ${positionY + centerY}")
 
-                            Log.d("TAG", "JoyStick positionXY: $offsetX, $offsetY")
-                        }
-
-                        // Calculate the new offset
-                        joystickOffset = Offset(
-                            x = offsetX + offset.x - centerX,
-                            y = offsetY + offset.y - centerY
-                        )
-
-                        if (radius > 0) {
-                            Log.d("TAG", "JoyStick radius cancel first: $radius")
-                            CoroutineScope(IO).launch {
-                                if (isDragging) {
-                                    this.launch {
-                                        while (isDragging) {
-                                            delay(10)
-                                            if (radius == 0f) {
-                                                this.cancel()
-                                                isDragging = false
-                                                Log.d("TAG", "JoyStick radius cancel second: $radius")
-                                            }
-                                            moved(availableCoordinates.first, availableCoordinates.second)
-                                            Log.d("TAG", "JoyStick radius: $radius")
-                                        }
+                if (radius > 0) {
+                    Log.d("TAG", "JoyStick radius cancel first: $radius")
+                    CoroutineScope(IO).launch {
+                        if (isDragging) {
+                            this.launch {
+                                while (isDragging) {
+                                    delay(10)
+                                    if (radius == 0f) {
+                                        this.cancel()
+                                        isDragging = false
+                                        Log.d("TAG", "JoyStick radius cancel second: $radius")
                                     }
-                                } else {
-                                    this.cancel()
-                                    Log.d("TAG", "JoyStick radius cancel third: $radius")
+                                    moved(availableCoordinates.first, availableCoordinates.second)
+                                    Log.d("TAG", "JoyStick radius: $radius")
                                 }
                             }
+                        } else {
+                            this.cancel()
+                            Log.d("TAG", "JoyStick radius cancel third: $radius")
                         }
                     }
                 }
-                .onGloballyPositioned { coordinates ->
-                    availableCoordinates = Pair((coordinates.positionInParent().x - centerX) / maxRadius, (coordinates.positionInParent().y - centerY) / maxRadius)
-                    //moved(availableCoordinates.first, availableCoordinates.second)
-                    moved(
-                        (coordinates.positionInParent().x - centerX) / maxRadius,
-                        (coordinates.positionInParent().y - centerY) / maxRadius
-                    )
-                },
-        )
+            }
+        }){
+
+        Box(modifier = modifier
+            .clip(CircleShape)
+            .align(Alignment.Center)
+            .background(Color.LightGray)
+            .size(size)) {
+
+            Box(
+                modifier = Modifier
+                    .offset {
+                        IntOffset(
+                            (positionX + centerX).roundToInt(),
+                            (positionY + centerY).roundToInt()
+                        )
+                    }
+                    .size(dotSize)
+                    .clip(CircleShape)
+                    //.align(Alignment.Center)
+                    .background(Color.Gray)
+                    .onGloballyPositioned { coordinates ->
+                        availableCoordinates = Pair(
+                            (coordinates.positionInParent().x - centerX) / maxRadius,
+                            (coordinates.positionInParent().y - centerY) / maxRadius
+                        )
+                        //moved(availableCoordinates.first, availableCoordinates.second)
+                        moved(
+                            (coordinates.positionInParent().x - centerX) / maxRadius,
+                            (coordinates.positionInParent().y - centerY) / maxRadius
+                        )
+                    },
+            )
+        }
     }
 }
 
 
-private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> =
-    Pair(radius * cos(theta), radius * sin(theta))
+private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> = Pair(radius * cos(theta), radius * sin(theta))
 
 
 
