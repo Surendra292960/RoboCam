@@ -1,5 +1,9 @@
 package com.example.robocam.joystick
 
+import android.R.color
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -24,11 +28,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +45,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.security.AccessController.getContext
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -61,12 +64,12 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
     val SCALE: Float = LocalContext.current.resources.displayMetrics.density
     // Convert dips to pixels
     val circleRadiusDips =80f
-    val circleRadius = (circleRadiusDips * SCALE + 0.5f) // 0.5f for rounding
-    //val circleRadius = 180f
+    //val circleRadius = (circleRadiusDips * SCALE + 0.5f) // 0.5f for rounding
+    val circleRadius = 180f
     // Convert dips to pixels
     val joystickRadiusDips =30f
-    val joystickRadius = (joystickRadiusDips * SCALE + 0.5f) // 0.5f for rounding
-    //val joystickRadius = 70f // Radius of the joystick itself
+   // val joystickRadius = (joystickRadiusDips * SCALE + 0.5f) // 0.5f for rounding
+    val joystickRadius = 70f // Radius of the joystick itself
     val center = Offset(150f, 150f)
     val haptic = LocalHapticFeedback.current
     var isDragging by remember { mutableStateOf(false) }
@@ -171,22 +174,26 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                     // Calculate the distance from the center to the joystick
                     val distance = (joystickOffset - center).getDistance()
 
-                    val angle = atan2(
-                        joystickOffset.y - center.y,
-                        joystickOffset.x - center.x
-                    ) * (180 / PI.toFloat())
+                    val angle = atan2(joystickOffset.y - center.y, joystickOffset.x - center.x) * (180 / PI.toFloat())
                     val startAngle = angle - 30f
                     val sweepAngle = 60f
 
+                    //val path = Path().apply { addArc(Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius), startAngle, sweepAngle) }
+
                     val path = Path().apply {
-                        addArc(
-                            Rect(
-                                center.x - circleRadius,
-                                center.y - circleRadius,
-                                center.x + circleRadius,
-                                center.y + circleRadius
-                            ), startAngle, sweepAngle
+                        // Move to the starting point
+                        //moveTo(center.x, center.y)
+
+                        // Create a semi-circle
+                        arcTo(
+                            rect =
+                            Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius),
+                                    //Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius),
+                            startAngleDegrees = startAngle,
+                            sweepAngleDegrees = sweepAngle,
+                            forceMoveTo = false
                         )
+                        close() // Close the path
                     }
                     // Draw the arc only when the joystick is at the edge
                     if (isDragging) {
@@ -195,26 +202,13 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                         drawPath(
                             path = path,
                             color = Color.Cyan,
-                            //style = Stroke(width = 5f)
                             style = Stroke(
-                                width = 20f,
-                                pathEffect = PathEffect.cornerPathEffect(joystickRadius),
-                                cap = StrokeCap.Round
+                                width = 25f,
+                                join = StrokeJoin.Miter,
+                                pathEffect = PathEffect.cornerPathEffect(joystickRadius-20),
+                                cap = StrokeCap.Square
                             ),
                         )
-
-                    /*    val centerX = size.width / 2f
-                        val centerY = size.height / 2f
-                        val radius = minOf(centerX, centerY)
-
-                        drawArc(
-                            color = Color.Yellow,
-                            startAngle = 0f,
-                            sweepAngle = 360f,
-                            useCenter = false,
-                            topLeft = Offset(centerX - radius, centerY - radius),
-                            size = Size(radius * 2, radius * 2)
-                        )*/
                     }
                 }
         )
