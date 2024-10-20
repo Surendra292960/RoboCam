@@ -83,9 +83,7 @@ class Square {
         drawListBuffer.put(drawOrder)
         drawListBuffer.position(0)
 
-        mCubeTextureCoordinates = ByteBuffer.allocateDirect(
-            textureCoordinates.size * 4)
-            .order(ByteOrder.nativeOrder()).asFloatBuffer()
+        mCubeTextureCoordinates = ByteBuffer.allocateDirect(textureCoordinates.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
         mCubeTextureCoordinates.put(textureCoordinates).position(0)
 
         // create empty OpenGL ES Program
@@ -137,16 +135,8 @@ class Square {
         mTextureDataHandle = textures[0]
 
         // Set filtering
-        GLES20.glTexParameteri(
-            GLES20.GL_TEXTURE_2D,
-            GLES20.GL_TEXTURE_MIN_FILTER,
-            GLES20.GL_NEAREST
-        )
-        GLES20.glTexParameteri(
-            GLES20.GL_TEXTURE_2D,
-            GLES20.GL_TEXTURE_MAG_FILTER,
-            GLES20.GL_NEAREST
-        )
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST)
     }
 
     fun draw() {
