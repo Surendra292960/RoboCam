@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,11 +31,13 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -73,7 +77,8 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
     val center = Offset(150f, 150f)
     val haptic = LocalHapticFeedback.current
     var isDragging by remember { mutableStateOf(false) }
-
+    val painter = rememberVectorPainter(image = Icons.Default.Add)
+    val tint = remember { ColorFilter.tint(Color.Red) }
 
     Box(modifier = Modifier
         .size(300.dp)
@@ -186,8 +191,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
 
                         // Create a semi-circle
                         arcTo(
-                            rect =
-                            Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius),
+                            rect = Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius),
                                     //Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius),
                             startAngleDegrees = startAngle,
                             sweepAngleDegrees = sweepAngle,
@@ -199,7 +203,25 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                     if (isDragging) {
                         Log.d("TAG", "JoyStickController drawBehind : ")
                         //haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        drawPath(
+
+                        with(painter) {
+                            drawPath(
+                                path = path,
+                                color = Color.Cyan,
+                                style = Stroke(
+                                    width = 25f,
+                                    join = StrokeJoin.Miter,
+                                    pathEffect = PathEffect.cornerPathEffect(joystickRadius-20),
+                                    cap = StrokeCap.Square
+                                ),
+                            )
+                            draw(
+                                size = painter.intrinsicSize,
+                                alpha = .5f, // optional
+                                colorFilter = tint // optional
+                            )
+                        }
+                     /*   drawPath(
                             path = path,
                             color = Color.Cyan,
                             style = Stroke(
@@ -208,7 +230,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                                 pathEffect = PathEffect.cornerPathEffect(joystickRadius-20),
                                 cap = StrokeCap.Square
                             ),
-                        )
+                        )*/
                     }
                 }
         )

@@ -57,10 +57,10 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier
                         .fillMaxSize(),
                         contentAlignment = Alignment.Center){
-                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-                     /*   JoyStick(viewModel = MainViewModel()){ x,y->
+                        //JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
+                        JoyStick(viewModel = MainViewModel()){ x,y->
                             Log.d("TAG", "joystick Wheel: $x, $y")
-                        }*/
+                        }
                     }
                 }
             }

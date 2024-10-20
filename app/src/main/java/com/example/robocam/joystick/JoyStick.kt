@@ -1,8 +1,10 @@
 package com.example.robocam.joystick
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,7 +61,7 @@ import kotlin.math.sqrt
 
 @Preview
 @Composable
-fun PreviewScreen(){
+fun PreviewScreen() {
     JoyStick(viewModel = MainViewModel())
 }
 
@@ -153,11 +155,6 @@ fun JoyStick(
                     Log.d("TAG", "JoyStick positionXY: $positionX, $positionY")
                 }
 
-                // Calculate the new offset
-                joystickOffset = Offset(
-                    x = offsetX + offset.x - centerX,
-                    y = offsetY + offset.y - centerY
-                )
 
                 Log.d("TAG", "JoyStick joystickOffset: ${positionX + centerX}, ${positionY + centerY}")
 
@@ -173,7 +170,10 @@ fun JoyStick(
                                         isDragging = false
                                         Log.d("TAG", "JoyStick radius cancel second: $radius")
                                     }
-                                    moved(availableCoordinates.first, availableCoordinates.second)
+                                    moved(
+                                        availableCoordinates.first,
+                                        availableCoordinates.second
+                                    )
                                     Log.d("TAG", "JoyStick radius: $radius")
                                 }
                             }
@@ -184,16 +184,21 @@ fun JoyStick(
                     }
                 }
             }
-        }){
+        }) {
 
-        Box(modifier = modifier
-            .clip(CircleShape)
-            .align(Alignment.Center)
-            .background(Color.LightGray)
-            .size(size)) {
-
+        Box(
+            modifier = modifier
+                .clip(CircleShape)
+                .align(Alignment.Center)
+                .background(Color.LightGray)
+                .size(size + 70.dp)) {
             Box(
-                modifier = Modifier
+                modifier = modifier
+                    .align(Alignment.Center)
+                    .background(Color.Transparent)
+                    .size(size)
+            ) {
+                Box(modifier = Modifier
                     .offset {
                         IntOffset(
                             (positionX + centerX).roundToInt(),
@@ -202,7 +207,6 @@ fun JoyStick(
                     }
                     .size(dotSize)
                     .clip(CircleShape)
-                    //.align(Alignment.Center)
                     .background(Color.Gray)
                     .onGloballyPositioned { coordinates ->
                         availableCoordinates = Pair(
@@ -214,15 +218,16 @@ fun JoyStick(
                             (coordinates.positionInParent().x - centerX) / maxRadius,
                             (coordinates.positionInParent().y - centerY) / maxRadius
                         )
-                    },
-            )
+                    }
+                )
+            }
         }
     }
 }
 
 
-private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> = Pair(radius * cos(theta), radius * sin(theta))
-
+private fun polarToCartesian(radius: Float, theta: Float): Pair<Float, Float> =
+    Pair(radius * cos(theta), radius * sin(theta))
 
 
 
