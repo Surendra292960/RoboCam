@@ -45,9 +45,21 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         }
     """
 
+    private val fragmentShaderCode = """
+        #extension GL_OES_EGL_image_external : require
+        precision mediump float;
+        uniform vec4 vColor;
+        uniform samplerExternalOES u_Texture;
+        varying vec2 v_TexCoordinate;
+        void main() {
+            gl_FragColor = (texture2D(u_Texture, v_TexCoordinate));
+        }
+        """.trimIndent()
+
     private val fragmentShaderSource = """
         precision mediump float;
         varying vec2 TexCoordOut;
+        uniform vec4 vColor;
         uniform sampler2D textureSampler;
         void main() {
             gl_FragColor = texture2D(textureSampler, TexCoordOut);
@@ -199,6 +211,7 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
         // Check for OpenGL errors
         checkGLError()
 
