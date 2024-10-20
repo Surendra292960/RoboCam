@@ -3,9 +3,7 @@ package com.example.robocam.opengl.robo_cam
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
-import android.opengl.GLES11Ext
 import android.opengl.GLES20
-import android.opengl.GLES20.glGetUniformLocation
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.util.Log
@@ -16,8 +14,10 @@ import com.example.robocam.utils.Utility.glLinkProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+import java.nio.IntBuffer
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
+
 
 internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean) :
     GLSurfaceView(context), GLSurfaceView.Renderer {
@@ -28,7 +28,7 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
     private var textureSamplerLocation: Int = 0
     private var vertexBuffer: Int = 0
     private var texCoordBuffer: Int = 0
-    private var textureID: Int = 0
+    private var textureID: Int = 1
     private var textureWidth: Int = 1280
     private var textureHeight: Int = 720
     private var mSurface: SurfaceTexture? = null
@@ -111,14 +111,14 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Get attribute locations
         positionAttrib = GLES20.glGetAttribLocation(program, "position")
         texCoordAttrib = GLES20.glGetAttribLocation(program, "texCoord")
-        textureSamplerLocation = glGetUniformLocation(program, "textureSampler")
+        textureSamplerLocation = GLES20.glGetUniformLocation(program, "textureSampler")
 
         // Check for OpenGL errors
         checkGLError()
 
         // Create vertex buffer
-        val vertexBufferArray = IntArray(1)
-        GLES20.glGenBuffers(1, vertexBufferArray, 0)
+        val vertexBufferArray = IntBuffer.allocate(1)
+        GLES20.glGenBuffers(1, vertexBufferArray)
         vertexBuffer = vertexBufferArray[0]
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffer)
         checkFramebufferStatus()
@@ -128,24 +128,21 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         val vertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(vertices.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
         vertexBuffer.put(vertices)
         vertexBuffer.position(0)
-        GLES20.glBufferData(
-            GLES20.GL_ARRAY_BUFFER,
-            vertices.size * 4,
-            vertexBuffer,
-            GLES20.GL_STATIC_DRAW
-        )
+        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vertices.size * 4, vertexBuffer, GLES20.GL_STATIC_DRAW)
+
         checkFramebufferStatus()
         // Check for OpenGL errors
         checkGLError()
 
         // Create texture coordinate buffer
-        val texCoordBufferArray = IntArray(1)
-        GLES20.glGenBuffers(1, texCoordBufferArray, 0)
+        val texCoordBufferArray = IntBuffer.allocate(1)
+        GLES20.glGenBuffers(1, texCoordBufferArray)
         texCoordBuffer = texCoordBufferArray[0]
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, texCoordBuffer)
         checkFramebufferStatus()
         // Check for OpenGL errors
         checkGLError()
+
         val texCoordBuffer: FloatBuffer = ByteBuffer.allocateDirect(texCoords.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
         texCoordBuffer.put(texCoords)
         texCoordBuffer.position(0)
@@ -177,19 +174,19 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Check for OpenGL errors
         checkGLError()
 
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffer)
-        checkFramebufferStatus()
-        GLES20.glEnableVertexAttribArray(positionAttrib)
-        GLES20.glVertexAttribPointer(positionAttrib, 3, GLES20.GL_FLOAT, false, 0, 0)
-
-        // Check for OpenGL errors
-        checkGLError()
-
         // Enable vertex attribute arrays and set pointers
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, texCoordBuffer)
         checkFramebufferStatus()
         GLES20.glEnableVertexAttribArray(texCoordAttrib)
         GLES20.glVertexAttribPointer(texCoordAttrib, 2, GLES20.GL_FLOAT, false, 0, 0)
+        // Check for OpenGL errors
+        checkGLError()
+
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffer)
+        checkFramebufferStatus()
+        GLES20.glEnableVertexAttribArray(positionAttrib)
+        GLES20.glVertexAttribPointer(positionAttrib, 3, GLES20.GL_FLOAT, false, 0, 0)
+
         // Check for OpenGL errors
         checkGLError()
 
