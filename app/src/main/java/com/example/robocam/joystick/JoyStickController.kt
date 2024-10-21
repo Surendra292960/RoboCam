@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
@@ -59,6 +60,12 @@ var job: Job? = null
 var innerCircleColor:Color = Color.Gray
 
 var distance:Float = 0f
+
+@Preview
+@Composable
+fun JoyStickControllerUIPreview(){
+    JoyStickController()
+}
 
 @Composable
 fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {

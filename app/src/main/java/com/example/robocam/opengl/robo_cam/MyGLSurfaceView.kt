@@ -3,6 +3,7 @@ package com.example.robocam.opengl.robo_cam
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.SurfaceTexture
+import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
@@ -28,9 +29,9 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
     private var textureSamplerLocation: Int = 0
     private var vertexBuffer: Int = 0
     private var texCoordBuffer: Int = 0
-    private var textureID: Int = 1
-    private var textureWidth: Int = 1280
-    private var textureHeight: Int = 720
+    private var textureID: Int = 0
+    private var textureWidth: Int = 0
+    private var textureHeight: Int = 0
     private var mSurface: SurfaceTexture? = null
     private var vertexShader = 0
     private var fragmentShader = 0
@@ -43,39 +44,31 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
             gl_Position = position;
             TexCoordOut = texCoord;
         }
-    """
-
-    private val fragmentShaderCode = """
-        #extension GL_OES_EGL_image_external : require
-        precision mediump float;
-        uniform vec4 vColor;
-        uniform samplerExternalOES u_Texture;
-        varying vec2 v_TexCoordinate;
-        void main() {
-            gl_FragColor = (texture2D(u_Texture, v_TexCoordinate));
-        }
-        """.trimIndent()
+    """.trimIndent()
 
     private val fragmentShaderSource = """
+        #extension GL_OES_EGL_image_external : require
         precision mediump float;
         varying vec2 TexCoordOut;
         uniform vec4 vColor;
         uniform sampler2D textureSampler;
+       
         void main() {
-            gl_FragColor = texture2D(textureSampler, TexCoordOut);
+             gl_FragColor = texture2D(textureSampler, TexCoordOut);
         }
-    """
+        """.trimIndent()
+
 
     // Initialize vertex buffer with data
-    private val vertices = floatArrayOf(
-        -1.0f,  1.0f, 0.0f,
+    private val verticesCoords = floatArrayOf(
+        -1.0f, 1.0f, 0.0f,
         -1.0f, -1.0f, 0.0f,
         1.0f, -1.0f, 0.0f,
-        1.0f,  1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
     )
 
     // Initialize texture coordinate buffer with data
-    private val texCoords = floatArrayOf(
+    private val textureCoords = floatArrayOf(
         0.0f, 1.0f,
         1.0f, 1.0f,
         1.0f, 0.0f,
@@ -90,12 +83,11 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
 
     override fun onDrawFrame(gl: GL10?) {
         try {
-    /*        client.camera()?.renderNextFrame()
-            val data = client.camera()?.glTextureData() ?: return
-            textureID = data.id.toInt()
-            textureWidth = data.width
-            textureHeight = data.height*/
-
+       /* client.camera()?.renderNextFrame()
+          val data = client.camera()?.glTextureData() ?: return
+          textureID = data.id.toInt()
+          textureWidth = data.width
+          textureHeight = data.height*/
             render()
             // Check for OpenGL errors
             checkGLError()
@@ -137,10 +129,17 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Check for OpenGL errors
         checkGLError()
 
-        val vertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(vertices.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
-        vertexBuffer.put(vertices)
+        val vertexBuffer: FloatBuffer =
+            ByteBuffer.allocateDirect(verticesCoords.size * 4).order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+        vertexBuffer.put(verticesCoords)
         vertexBuffer.position(0)
-        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, vertices.size * 4, vertexBuffer, GLES20.GL_STATIC_DRAW)
+        GLES20.glBufferData(
+            GLES20.GL_ARRAY_BUFFER,
+            verticesCoords.size * 4,
+            vertexBuffer,
+            GLES20.GL_STATIC_DRAW
+        )
 
         checkFramebufferStatus()
         // Check for OpenGL errors
@@ -155,10 +154,17 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Check for OpenGL errors
         checkGLError()
 
-        val texCoordBuffer: FloatBuffer = ByteBuffer.allocateDirect(texCoords.size * 4).order(ByteOrder.nativeOrder()).asFloatBuffer()
-        texCoordBuffer.put(texCoords)
+        val texCoordBuffer: FloatBuffer =
+            ByteBuffer.allocateDirect(textureCoords.size * 4).order(ByteOrder.nativeOrder())
+                .asFloatBuffer()
+        texCoordBuffer.put(textureCoords)
         texCoordBuffer.position(0)
-        GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, texCoords.size * 4, texCoordBuffer, GLES20.GL_STATIC_DRAW)
+        GLES20.glBufferData(
+            GLES20.GL_ARRAY_BUFFER,
+            textureCoords.size * 4,
+            texCoordBuffer,
+            GLES20.GL_STATIC_DRAW
+        )
         checkFramebufferStatus()
         // Check for OpenGL errors
         checkGLError()
@@ -166,7 +172,7 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Read the texture.
         val textureBitmap = BitmapFactory.decodeStream(context.assets.open("models/mind.png"))
 
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureID)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID)
 
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0)
 
@@ -203,14 +209,15 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         checkGLError()
 
         // GL bind texture
+        GLES20.glUniform1i(textureSamplerLocation, 0)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureID)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID)
         GLES20.glUniform1i(textureSamplerLocation, 0)
         // Check for OpenGL errors
         checkGLError()
 
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
 
         // Check for OpenGL errors
         checkGLError()
@@ -222,7 +229,7 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
 
         // Release the GL bind texture
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         // Check for OpenGL errors
         checkGLError()
     }
