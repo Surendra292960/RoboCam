@@ -109,7 +109,6 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         GLES20.glAttachShader(program, vertexShader)
         GLES20.glAttachShader(program, fragmentShader)
         glLinkProgram(program)
-
         // Check for OpenGL errors
         checkGLError()
 
@@ -168,6 +167,16 @@ internal class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag
         // Check for OpenGL errors
         checkGLError()
 
+        // Read the texture.
+        val textureBitmap = BitmapFactory.decodeStream(context.assets.open("models/mind.png"))
+
+        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID)
+
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0)
+
+        GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D)
+
+        textureBitmap.recycle()
 
     }
 

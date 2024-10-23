@@ -1,3 +1,4 @@
+/*
 package com.example.robocam.video_stream
 
 import android.app.Activity
@@ -411,4 +412,4 @@ class AndroidStreamer {
             Log.i("Unity", "You're the best around!")
         }
     }
-}
+}*/

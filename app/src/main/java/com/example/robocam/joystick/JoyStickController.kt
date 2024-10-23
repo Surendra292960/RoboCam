@@ -1,9 +1,5 @@
 package com.example.robocam.joystick
 
-import android.R.color
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -30,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
@@ -172,73 +169,24 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
             modifier = Modifier
                 .fillMaxSize()
                 .align(alignment = Alignment.BottomCenter)
-                .requiredSize(
-                    width = 120.dp,
-                    height = 120.dp,
-                )
+                .requiredSize(120.dp)
                 .drawBehind {
-                    // Draw the outer circle
+
+                    // Draw the outer circle slightly offset from the inner circle
+                    val outerCircleOffset = joystickOffset.copy(
+                        x = joystickOffset.x, // Adjust this value for desired offset
+                        y = joystickOffset.y // Adjust this value for desired offset
+                    )
+
+                    Log.d("TAG", "JoyStickController outerCircleOffset : $outerCircleOffset")
+
+                    drawCircle(color = Color.Yellow, radius = circleRadius, center = outerCircleOffset.copy(x=center.x, y=center.y))
+
+                    // Draw the medium joystick circle at the center
                     drawCircle(color = Color.LightGray, radius = circleRadius, center = center)
 
-                    // Draw the inner joystick circle
+                    // Draw the inner joystick circle at the joystick offset
                     drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset)
-
-                    // Calculate the distance from the center to the joystick
-                    val distance = (joystickOffset - center).getDistance()
-
-                    val angle = atan2(joystickOffset.y - center.y, joystickOffset.x - center.x) * (180 / PI.toFloat())
-                    val startAngle = angle - 30f
-                    val sweepAngle = 60f
-
-                    //val path = Path().apply { addArc(Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius), startAngle, sweepAngle) }
-
-                    val path = Path().apply {
-                        // Move to the starting point
-                        //moveTo(center.x, center.y)
-
-                        // Create a semi-circle
-                        arcTo(
-                            rect = Rect(center.x - circleRadius, center.y - circleRadius, center.x + circleRadius, center.y + circleRadius),
-                                    //Rect(centerX - radius, centerY - radius, centerX + radius, centerY + radius),
-                            startAngleDegrees = startAngle,
-                            sweepAngleDegrees = sweepAngle,
-                            forceMoveTo = false
-                        )
-                        close() // Close the path
-                    }
-                    // Draw the arc only when the joystick is at the edge
-                    if (isDragging) {
-                        Log.d("TAG", "JoyStickController drawBehind : ")
-                        //haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-
-                        with(painter) {
-                            drawPath(
-                                path = path,
-                                color = Color.Cyan,
-                                style = Stroke(
-                                    width = 25f,
-                                    join = StrokeJoin.Miter,
-                                    pathEffect = PathEffect.cornerPathEffect(joystickRadius-20),
-                                    cap = StrokeCap.Square
-                                ),
-                            )
-                            draw(
-                                size = painter.intrinsicSize,
-                                alpha = .5f, // optional
-                                colorFilter = tint // optional
-                            )
-                        }
-                     /*   drawPath(
-                            path = path,
-                            color = Color.Cyan,
-                            style = Stroke(
-                                width = 25f,
-                                join = StrokeJoin.Miter,
-                                pathEffect = PathEffect.cornerPathEffect(joystickRadius-20),
-                                cap = StrokeCap.Square
-                            ),
-                        )*/
-                    }
                 }
         )
 
