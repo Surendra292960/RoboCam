@@ -164,7 +164,6 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
             }
         }) {
 
-        // Draw the circle and joystick
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -172,21 +171,59 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                 .requiredSize(120.dp)
                 .drawBehind {
 
-                    // Draw the outer circle slightly offset from the inner circle
-                    val outerCircleOffset = joystickOffset.copy(
-                        x = joystickOffset.x, // Adjust this value for desired offset
-                        y = joystickOffset.y // Adjust this value for desired offset
-                    )
+                    // Define the maximum radius for the yellow circle's movement
+                    val maxYellowRadius = 10.dp.toPx() // Adjust this value for desired effect
 
-                    Log.d("TAG", "JoyStickController outerCircleOffset : $outerCircleOffset")
+                    // Calculate the vector from the center to the joystick offset
+                    val joystickVector = joystickOffset - center
 
-                    drawCircle(color = Color.Yellow, radius = circleRadius, center = outerCircleOffset.copy(x=center.x, y=center.y))
+                    // Clamp the joystick vector's length to the maxYellowRadius
+                    val clampedJoystickVector = joystickVector.clampLength(maxYellowRadius)
+
+                    // Calculate the outer circle's position based on the clamped joystick vector
+                    val outerCircleOffset = center + clampedJoystickVector
+
+                    // Draw the outer joystick circle at the calculated offset
+                    drawCircle(color = Color.Cyan, radius = circleRadius, center = outerCircleOffset)
 
                     // Draw the medium joystick circle at the center
                     drawCircle(color = Color.LightGray, radius = circleRadius, center = center)
 
                     // Draw the inner joystick circle at the joystick offset
                     drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset)
+
+                    // Calculate the angle for the yellow path
+                    val angle = atan2(joystickOffset.y - center.y, joystickOffset.x - center.x) * (180 / PI.toFloat())
+
+                    // Calculate the position for the yellow arc based on the outer circle's position
+                    val yellowArcCenter = outerCircleOffset
+
+                    val startAngle = angle - 2f
+                    val sweepAngle = 4f
+
+                    val path = Path().apply {
+                        addArc(
+                            Rect(
+                                yellowArcCenter.x - circleRadius,
+                                yellowArcCenter.y - circleRadius,
+                                yellowArcCenter.x + circleRadius,
+                                yellowArcCenter.y + circleRadius
+                            ),
+                            startAngle,
+                            sweepAngle
+                        )
+                    }
+
+                    drawPath(
+                        path = path,
+                        color = Color.Cyan,
+                        style = Stroke(
+                            width = 20f,
+                            pathEffect = PathEffect.cornerPathEffect(joystickRadius),
+                            join = StrokeJoin.Miter,
+                            cap = StrokeCap.Square
+                        ),
+                    )
                 }
         )
 
@@ -200,14 +237,24 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
             fontSize = 16.sp
         )
     }
-
 }
 
+// Extension function to clamp a vector's length
+private fun Offset.clampLength(maxLength: Float): Offset {
+    val length = getDistance()
+    return if (length > maxLength) {
+        val ratio = maxLength / length
+        Offset(x * ratio, y * ratio)
+    } else {
+        this
+    }
+}
 
-// Extension function to calculate distance
-fun Offset.getDistance(): Float {
+// Extension function to calculate the distance between two offsets
+private fun Offset.getDistance(): Float {
     return sqrt(x * x + y * y)
 }
+
 
 fun cancelJob() {
     CoroutineScope(IO).launch {
