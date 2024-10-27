@@ -72,4 +72,48 @@ object Utility {
         }
         return shader
     }
+
+    /**
+     * Utility method for compiling a OpenGL shader.
+     *
+     *
+     * **Note:** When developing shaders, use the checkGlError()
+     * method to debug shader coding errors.
+     *
+     * @param type - Vertex or fragment shader type.
+     * @param shaderCode - String containing the shader code.
+     * @return - Returns an id for the shader.
+     */
+    fun loadShader(type: Int, shaderCode: String?): Int {
+        // create a vertex shader type (GLES20.GL_VERTEX_SHADER)
+        // or a fragment shader type (GLES20.GL_FRAGMENT_SHADER)
+
+        val shader = GLES20.glCreateShader(type)
+
+        // add the source code to the shader and compile it
+        GLES20.glShaderSource(shader, shaderCode)
+        GLES20.glCompileShader(shader)
+
+        return shader
+    }
+
+    /**
+     * Utility method for debugging OpenGL calls. Provide the name of the call
+     * just after making it:
+     *
+     * <pre>
+     * mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
+     * MyGLRenderer.checkGlError("glGetUniformLocation");</pre>
+     *
+     * If the operation is not successful, the check throws an error.
+     *
+     * @param glOperation - Name of the OpenGL call to check.
+     */
+    fun checkGlError(glOperation: String) {
+        var error: Int
+        while ((GLES20.glGetError().also { error = it }) != GLES20.GL_NO_ERROR) {
+            Log.e("TAG", "$glOperation: glError $error")
+            throw RuntimeException("$glOperation: glError $error")
+        }
+    }
 }

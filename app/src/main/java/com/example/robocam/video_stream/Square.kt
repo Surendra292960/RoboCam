@@ -1,27 +1,41 @@
-package com.example.robocam.opengl.robo_cam
+/*
+ * Copyright (C) 2011 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.example.robocam.video_stream
+
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.media.MediaCodec
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
-import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.util.Log
 import android.view.Surface
-import com.example.robocam.opengl.MyCamera
 import com.example.robocam.utils.Utility.checkFramebufferStatus
+import com.example.robocam.utils.Utility.checkGLError
 import com.example.robocam.utils.Utility.compileShader
 import com.example.robocam.utils.Utility.glLinkProgram
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
 
-
-class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean) : GLSurfaceView(context), GLSurfaceView.Renderer {
-
+/**
+ * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
+ */
+class Square (context: Context){
     private var program: Int = 0
     private var positionAttrib: Int = 0
     private var texCoordAttrib: Int = 0
@@ -75,28 +89,10 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
         0.0f, 0.0f,
     )
 
+    /**
+     * Sets up the drawing object data for use in an OpenGL ES context.
+     */
     init {
-        setEGLContextClientVersion(2)
-        setRenderer(this)
-        renderMode = RENDERMODE_CONTINUOUSLY
-    }
-
-    override fun onDrawFrame(gl: GL10?) {
-        try {
-            render()
-            // Check for OpenGL errors
-            checkGLError()
-        } catch (e: Exception) {
-            Log.e("VideoFrame", "Error fetching texture data", e)
-        }
-    }
-
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
-        Log.v("LOG_TAG", "Surface Changed")
-        GLES20.glViewport(0, 0, width, height)
-    }
-
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         mSurface = MediaCodec.createPersistentInputSurface()
         // Load shaders and create program
         vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource)
@@ -126,7 +122,7 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
         checkGLError()
 
         val vertexBuffer: FloatBuffer = ByteBuffer.allocateDirect(verticesCoords.size * 4).order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
+            .asFloatBuffer()
         vertexBuffer.put(verticesCoords)
         vertexBuffer.position(0)
         GLES20.glBufferData(
@@ -150,7 +146,7 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
         checkGLError()
 
         val texCoordBuffer: FloatBuffer = ByteBuffer.allocateDirect(textureCoords.size * 4).order(ByteOrder.nativeOrder())
-                .asFloatBuffer()
+            .asFloatBuffer()
         texCoordBuffer.put(textureCoords)
         texCoordBuffer.position(0)
         GLES20.glBufferData(
@@ -175,8 +171,13 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
         textureBitmap.recycle()
     }
 
-
-    private fun render() {
+    /**
+     * Encapsulates the OpenGL ES instructions for drawing this shape.
+     *
+     * @param mvpMatrix - The Model View Project matrix in which to draw
+     * this shape.
+     */
+    fun draw(mvpMatrix: FloatArray?) {
         Log.d("TAG", "render glBindTexture : $textureID  $textureWidth  $textureHeight")
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -225,18 +226,5 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         // Check for OpenGL errors
         checkGLError()
-    }
-
-    private fun checkGLError() {
-        val error = GLES20.glGetError()
-        if (error != GLES20.GL_NO_ERROR) {
-            Log.e("OpenGL Error", "Error: $error")
-        }
-    }
-
-    fun destroy() {
-        GLES20.glDeleteProgram(program)
-        GLES20.glDeleteShader(fragmentShader)
-        GLES20.glDeleteShader(vertexShader)
     }
 }

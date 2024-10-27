@@ -1,3 +1,4 @@
+/*
 package com.example.robocam.joystick
 
 import android.util.Log
@@ -62,7 +63,8 @@ fun HomeScreen() {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()) {
-         /*   Box(modifier = Modifier.size(buttonSize * 2)) {
+         */
+/*   Box(modifier = Modifier.size(buttonSize * 2)) {
                 currentPosition?.let { position ->
                     Box(
                         modifier = Modifier
@@ -79,7 +81,8 @@ fun HomeScreen() {
                         )
                     }
                 }
-            }*/
+            }*//*
+
 
             Spacer(modifier = Modifier.height(40.dp))
 
@@ -205,4 +208,4 @@ fun MyButton(
 @Composable
 fun HomeScreenPreview() {
     HomeScreen()
-}
+}*/
