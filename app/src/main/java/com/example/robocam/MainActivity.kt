@@ -36,6 +36,7 @@ import androidx.core.content.FileProvider
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.Permissions
 import com.example.robocam.video_stream.MyGLSurfaceView
+import com.example.robocam.video_stream.PermissionsHelper
 import com.example.robocam.video_stream.RecordableSurfaceView
 import java.io.File
 import java.io.IOException
@@ -85,7 +86,7 @@ class MainActivity : ComponentActivity() {
         mGLView!!.pause()
     }
 
-   /* override fun onResume() {
+    override fun onResume() {
         super.onResume()
 
         // The following call resumes a paused rendering thread.
@@ -93,18 +94,18 @@ class MainActivity : ComponentActivity() {
         // this is a good place to re-allocate them.
         if (PermissionsHelper.hasPermissions(this)) {
             // Note that order matters - see the note in onPause(), the reverse applies here.
-            mGLView!!.resume()
+            mGLView?.resume()
             try {
-                mOutputFile = createVideoOutputFile()
-                val size = getScreenSize()
-                mGLView!!.initRecorder(mOutputFile!!, size.x, size.y, null, null)
+                mOutputFile = createVideoOutputFile(this)
+                val size = getScreenSize(this)
+                mGLView?.initRecorder(mOutputFile!!, size.x, size.y, null, null)
             } catch (ioex: IOException) {
                 Log.e(ContentValues.TAG, "Couldn't re-init recording", ioex)
             }
         } else {
             PermissionsHelper.requestPermissions(this)
         }
-    }*/
+    }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.main_menu, menu)
