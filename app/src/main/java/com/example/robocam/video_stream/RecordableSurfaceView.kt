@@ -1,3 +1,17 @@
+/*
+ * Copyright 2017 Uncorked Studios Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.example.robocam.video_stream
 
 import android.content.Context
@@ -12,10 +26,14 @@ import android.opengl.EGLSurface
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
-import android.util.Log
+import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.TextView
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
+import com.example.robocam.R
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -23,8 +41,20 @@ import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * Used to record video of the content of a SurfaceView, backed by a GL render loop.
+ *
+ *
+ * Intended as a near-drop-in replacement for [GLSurfaceView], but reliant on callbacks
+ * instead of an explicit [GLSurfaceView.Renderer].
+ *
+ *
+ *
+ * **Note:** Currently, RecordableSurfaceView does not record video on the emulator
+ * due to a dependency on [MediaRecorder].
+ */
 open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
-    private var mSurface: Surface? = null
+    var mSurface: Surface? = null
 
     private val mRenderMode = AtomicInteger(RENDERMODE_CONTINUOUSLY)
 
@@ -54,10 +84,43 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
     private val mRenderRequested = AtomicBoolean(false)
 
-    private val mPreserveEGLContextOnPause = false
+    /**
+     * returns whether or not to attempt to preserve the Context on pause.
+     */
+    /**
+     * Set whether or not EGL Context is preserved when the view is paused & resumed.
+     *
+     *
+     * If true, then EGL Context *may* be preserved.
+     *
+     *
+     *
+     * Note that on some devices and older Android versions, the Context may not be
+     * preserved due to limitations of GPU hardware.
+     *
+     *
+     *
+     * If false, the Context will be released when paused, and recreated when resumed.
+     *
+     *
+     * Default is false.
+     * @param preserve preserve the Context on pause
+     */
+    var preserveEGLContextOnPause: Boolean = false
 
-
-    fun doSetup() {
+    /**
+     * Performs necessary setup operations such as creating a MediaCodec persistent surface and
+     * setting up initial state.
+     *
+     *
+     * Also links the SurfaceHolder that manages the Surface View to the render thread for lifecycle
+     * callbacks
+     *
+     * @see MediaCodec
+     *
+     * @see SurfaceHolder.Callback
+     */
+    private fun doSetup() {
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
             mARRenderThread = ARRenderThread()
@@ -66,7 +129,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         this.holder.addCallback(mARRenderThread)
 
         if (holder.surface.isValid) {
-            mARRenderThread!!.surfaceCreated(surfaceHolder = holder)
+            mARRenderThread!!.surfaceCreated(holder)
         }
 
         mPaused = true
@@ -100,17 +163,63 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
 
     var renderMode: Int
-
+        /**
+         * @return int representing the current render mode of this object
+         * @see RecordableSurfaceView.RENDERMODE_WHEN_DIRTY
+         *
+         * @see RecordableSurfaceView.RENDERMODE_CONTINUOUSLY
+         */
         get() = mRenderMode.get()
-
+        /**
+         * Set the rendering mode. When renderMode is [RecordableSurfaceView.RENDERMODE_CONTINUOUSLY],
+         * the renderer is called repeatedly to re-render the scene. When renderMode is [ ][RecordableSurfaceView.RENDERMODE_WHEN_DIRTY], the renderer only rendered when the surface is
+         * created, or when [RecordableSurfaceView.requestRender] is called. Defaults to [ ][RecordableSurfaceView.RENDERMODE_CONTINUOUSLY].
+         *
+         *
+         * Using [RecordableSurfaceView.RENDERMODE_WHEN_DIRTY] can improve battery life and
+         * overall system performance by allowing the GPU and CPU to idle when the view does not need
+         * to
+         * be updated.
+         */
         set(mode) {
             mRenderMode.set(mode)
         }
 
-    fun requestRender() {
+    /**
+     * Resets the [MediaRecorder] to let it be cleanly re-initialized without destroying the
+     * process
+     */
+    fun resetMediaRecorder() {
+        if (mMediaRecorder == null || mIsRecording.get()) {
+            return
+        }
+        mMediaRecorder!!.reset()
+    }
+
+
+    /**
+     * Request that the renderer render a frame.
+     * This method is typically used when the render mode has been set to [ ][RecordableSurfaceView.RENDERMODE_WHEN_DIRTY],  so that frames are only rendered on demand.
+     * May be called from any thread.
+     *
+     *
+     * Must not be called before a renderer has been set.
+     */
+    private fun requestRender() {
         mRenderRequested.set(true)
     }
 
+    /**
+     * Iitializes the [MediaRecorder] ad relies on its lifecycle and requirements.
+     *
+     * @param saveToFile    the File object to record into. Assumes the calling program has
+     * permission to write to this file
+     * @param displayWidth  the Width of the display
+     * @param displayHeight the Height of the display
+     * @param errorListener optional [MediaRecorder.OnErrorListener] for recording state callbacks
+     * @param infoListener  optional [MediaRecorder.OnInfoListener] for info callbacks
+     * @see MediaRecorder
+     */
     @Throws(IOException::class)
     fun initRecorder(
         saveToFile: File, displayWidth: Int, displayHeight: Int,
@@ -122,6 +231,32 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         )
     }
 
+
+    @Throws(IOException::class)
+    fun initRecorder(
+        saveToFile: File, displayWidth: Int, displayHeight: Int,
+        orientationHint: Int, errorListener: MediaRecorder.OnErrorListener?,
+        infoListener: MediaRecorder.OnInfoListener?
+    ) {
+        initRecorder(
+            saveToFile, displayWidth, displayHeight, displayWidth, displayHeight,
+            orientationHint, errorListener, infoListener
+        )
+    }
+
+
+    /**
+     * Iitializes the [MediaRecorder] ad relies on its lifecycle and requirements.
+     *
+     * @param saveToFile      the File object to record into. Assumes the calling program has
+     * permission to write to this file
+     * @param displayWidth    the Width of the display
+     * @param displayHeight   the Height of the display
+     * @param orientationHint the orientation to record the video (0, 90, 180, or 270)
+     * @param errorListener   optional [MediaRecorder.OnErrorListener] for recording state callbacks
+     * @param infoListener    optional [MediaRecorder.OnInfoListener] for info callbacks
+     * @see MediaRecorder
+     */
     @Throws(IOException::class)
     fun initRecorder(
         saveToFile: File, displayWidth: Int, displayHeight: Int,
@@ -161,8 +296,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         mediaRecorder.prepare()
 
         mMediaRecorder = mediaRecorder
-
-        Log.d(TAG, "initRecorder: mediaRecorder")
     }
 
 
@@ -184,6 +317,15 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         return success
     }
 
+    /**
+     * Stops the [MediaRecorder] and sets the internal state of this object to 'Not
+     * recording'
+     * It is important to call this before attempting to play back the video that has been
+     * recorded.
+     *
+     * @return true if the recording stopped successfully and false if not
+     * @throws IllegalStateException if not recording when called
+     */
     @Throws(IllegalStateException::class)
     fun stopRecording(): Boolean {
         if (mIsRecording.get()) {
@@ -203,7 +345,12 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
     }
 
     var rendererCallbacks: RendererCallbacks?
-
+        /**
+         * Returns the reference (if any) to the [RendererCallbacks]
+         *
+         * @return the callbacks if registered
+         * @see RendererCallbacks
+         */
         get() {
             if (mRendererCallbacksWeakReference != null) {
                 return mRendererCallbacksWeakReference!!.get()
@@ -211,18 +358,55 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
             return null
         }
-
+        /**
+         * Add a [RendererCallbacks] object to handle rendering. Not setting one of these is not
+         * necessarily an error, but is usually necessary.
+         *
+         * @param surfaceRendererCallbacks - the object to call back to
+         */
         set(surfaceRendererCallbacks) {
             mRendererCallbacksWeakReference = WeakReference(surfaceRendererCallbacks)
         }
 
-    interface RendererCallbacks {
 
+    /**
+     * Queue a runnable to be run on the GL rendering thread.
+     *
+     * @param runnable - the runnable to queue
+     */
+    fun queueEvent(runnable: Runnable) {
+        if (mARRenderThread != null) {
+            mARRenderThread!!.mRunnableQueue.add(runnable)
+        }
+    }
+
+    /**
+     * Lifecycle events for the SurfaceView and renderer. These callbacks (unless specified)
+     * are executed on the GL thread.
+     */
+    interface RendererCallbacks {
+        /**
+         * The surface has been created and bound to the GL context.
+         *
+         *
+         * A GL context is guaranteed to exist when this function is called.
+         */
         fun onSurfaceCreated()
 
+        /**
+         * The surface has changed width or height.
+         *
+         *
+         * This callback will only be called when there is a change to either or both params
+         *
+         * @param width  width of the surface
+         * @param height height of the surface
+         */
         fun onSurfaceChanged(width: Int, height: Int)
 
-
+        /**
+         * Called just before the GL Context is torn down.
+         */
         fun onSurfaceDestroyed()
 
 
@@ -423,7 +607,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                             mEGLDisplay,
                             EGL14.EGL_NO_SURFACE,
                             EGL14.EGL_NO_SURFACE,
-                            if (mPreserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT
+                            if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT
                         )
 
                         if (mEGLSurface != null) {
@@ -433,7 +617,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                         if (mEGLSurfaceMedia != null) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurfaceMedia)
                         }
-                        if (!mPreserveEGLContextOnPause) {
+                        if (!preserveEGLContextOnPause) {
                             EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)
                             mHasGLContext.set(false)
                         }
@@ -453,7 +637,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         }
 
         override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-            if ((!this.isAlive && !this.isInterrupted) && this.state != State.TERMINATED) {
+            if (!this.isAlive && !this.isInterrupted && this.state != State.TERMINATED) {
                 this.start()
             }
         }

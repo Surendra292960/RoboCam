@@ -1,17 +1,22 @@
 package com.example.robocam
-import android.content.ContentValues
 import android.Manifest
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
+import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -21,6 +26,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,10 +37,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.Permissions
+import com.example.robocam.utils.ViewRecorder
 import com.example.robocam.video_stream.MyGLSurfaceView
 import com.example.robocam.video_stream.PermissionsHelper
 import com.example.robocam.video_stream.RecordableSurfaceView
@@ -43,35 +51,42 @@ import java.io.IOException
 import java.util.Date
 
 
+var mView: View? = null
+var text: TextView? = null
 private var mGLView: RecordableSurfaceView? = null
 private var mOutputFile: File? = null
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var mIsRecording = false
+    private var mViewRecorder: ViewRecorder? = null
+    private var mRecording = false
+
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
+        mView = layout.findViewById<LinearLayout>(R.id.root)
+        text = layout.findViewById<TextView>(R.id.text)
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
-                    Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center){
-                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-                    }
+                    /*   Box(modifier = Modifier.fillMaxSize(),
+                           contentAlignment = Alignment.Center){
+                           JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
+                       }*/
                 }
             }
+            startRecord()
             checkPermission()
         }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun checkPermission(){
         val permissions = Permissions(this,
             arrayListOf(Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO
+                Manifest.permission.RECORD_AUDIO
             ),
             23)
         permissions.checkPermissions()
@@ -79,19 +94,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        // The following call pauses the rendering thread.
-        // If your OpenGL application is memory intensive,
-        // you should consider de-allocating objects that
-        // consume significant memory here.
-        mGLView!!.pause()
+        mGLView?.pause()
+        stopRecord()
     }
 
     override fun onResume() {
         super.onResume()
-
-        // The following call resumes a paused rendering thread.
-        // If you de-allocated graphic objects for onPause()
-        // this is a good place to re-allocate them.
         if (PermissionsHelper.hasPermissions(this)) {
             // Note that order matters - see the note in onPause(), the reverse applies here.
             mGLView?.resume()
@@ -127,6 +135,7 @@ class MainActivity : ComponentActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (mIsRecording) {
             mGLView!!.stopRecording()
+
             val contentUri = FileProvider.getUriForFile(this, "com.example.robocam.fileprovider", mOutputFile!!)
 
             share(contentUri)
@@ -159,30 +168,90 @@ class MainActivity : ComponentActivity() {
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         startActivity(Intent.createChooser(shareIntent, "Share with"))
     }
+
+    private fun startRecord() {
+        val mOnErrorListener = MediaRecorder.OnErrorListener { mr, what, extra ->
+            Log.e("TAG", "MediaRecorder error: type = $what, code = $extra")
+            mViewRecorder!!.reset()
+            mViewRecorder!!.release()
+        }
+        val directory = this!!.externalCacheDir
+        if (directory != null) {
+            directory.mkdirs()
+            if (!directory.exists()) {
+                Log.w("TAG", "startRecord failed: $directory does not exist!")
+                return
+            }
+        }
+
+        mViewRecorder = ViewRecorder()
+        mViewRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC) // uncomment this line if audio required
+        mViewRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE)
+        mViewRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+        mViewRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        mViewRecorder!!.setVideoFrameRate(5) // 5fps
+        mViewRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+        mViewRecorder!!.setVideoSize(720, 1280)
+        mViewRecorder!!.setVideoEncodingBitRate(2000 * 1000)
+        mViewRecorder!!.setOutputFile(cacheDir.toString() + "/" + System.currentTimeMillis() + ".mp4")
+        mViewRecorder!!.setOnErrorListener(mOnErrorListener)
+
+        mView?.let {
+            mViewRecorder?.setRecordedView(it)
+        }
+        try {
+            mViewRecorder!!.prepare()
+            mViewRecorder!!.start()
+        } catch (e: IOException) {
+            Log.e("TAG", "startRecord failed", e)
+            return
+        }
+
+        Log.d("TAG", "startRecord successfully!")
+        mRecording = true
+    }
+
+    private fun stopRecord() {
+        try {
+            mViewRecorder!!.stop()
+            mViewRecorder!!.reset()
+            mViewRecorder!!.release()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        mRecording = false
+        Log.d("TAG", "stopRecord successfully!")
+    }
 }
 
 
 @Composable
 fun OpenGLScreen() {
     val context = LocalContext.current as MainActivity
-
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = {
-                MyGLSurfaceView(context).also { glView ->
-                    mGLView = glView // Store reference to mGLView
-                }
+                mView.let {
+                   MyGLSurfaceView(context).also { glView ->
+                       mGLView = glView // Store reference to mGLView
+                   }
+               }
             },
-            update = {
+            update = { view->
+                mView = view
+                text?.textSize=99f
                 getData(context)
             }
         )
+
+        Text(text = "Hello", color = Color.White, fontSize = 34.sp)
     }
 }
 
 fun getData(context: Context) {
     mGLView?.resume()
     try {
+
         mOutputFile = createVideoOutputFile(context)
         val size = getScreenSize(context)
         mGLView?.initRecorder(mOutputFile!!, size.x, size.y, null, null)
@@ -270,6 +339,7 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
            }*/
     }
 }
+
 
 
 
