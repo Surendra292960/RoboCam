@@ -1,5 +1,6 @@
 package com.example.robocam
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -21,6 +23,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,15 +55,12 @@ import java.util.Date
 
 
 var mView: View? = null
-var text: TextView? = null
 private var mGLView: RecordableSurfaceView? = null
 private var mOutputFile: File? = null
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var mIsRecording = false
-    private var mViewRecorder: ViewRecorder? = null
-    private var mRecording = false
 
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -68,7 +68,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
         mView = layout.findViewById<LinearLayout>(R.id.root)
-        text = layout.findViewById<TextView>(R.id.text)
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
@@ -78,24 +77,12 @@ class MainActivity : ComponentActivity() {
                        }*/
                 }
             }
-            startRecord()
-            checkPermission()
         }
-    }
-
-    private fun checkPermission(){
-        val permissions = Permissions(this,
-            arrayListOf(Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO
-            ),
-            23)
-        permissions.checkPermissions()
     }
 
     override fun onPause() {
         super.onPause()
         mGLView?.pause()
-        stopRecord()
     }
 
     override fun onResume() {
@@ -151,6 +138,7 @@ class MainActivity : ComponentActivity() {
             }
             item.setTitle("Record")
         } else {
+            checkPermission()
             mGLView!!.startRecording()
             Log.v(ContentValues.TAG, "Recording Started")
 
@@ -169,58 +157,13 @@ class MainActivity : ComponentActivity() {
         startActivity(Intent.createChooser(shareIntent, "Share with"))
     }
 
-    private fun startRecord() {
-        val mOnErrorListener = MediaRecorder.OnErrorListener { mr, what, extra ->
-            Log.e("TAG", "MediaRecorder error: type = $what, code = $extra")
-            mViewRecorder!!.reset()
-            mViewRecorder!!.release()
-        }
-        val directory = this!!.externalCacheDir
-        if (directory != null) {
-            directory.mkdirs()
-            if (!directory.exists()) {
-                Log.w("TAG", "startRecord failed: $directory does not exist!")
-                return
-            }
-        }
-
-        mViewRecorder = ViewRecorder()
-        mViewRecorder!!.setAudioSource(MediaRecorder.AudioSource.MIC) // uncomment this line if audio required
-        mViewRecorder!!.setVideoSource(MediaRecorder.VideoSource.SURFACE)
-        mViewRecorder!!.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mViewRecorder!!.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mViewRecorder!!.setVideoFrameRate(5) // 5fps
-        mViewRecorder!!.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-        mViewRecorder!!.setVideoSize(720, 1280)
-        mViewRecorder!!.setVideoEncodingBitRate(2000 * 1000)
-        mViewRecorder!!.setOutputFile(cacheDir.toString() + "/" + System.currentTimeMillis() + ".mp4")
-        mViewRecorder!!.setOnErrorListener(mOnErrorListener)
-
-        mView?.let {
-            mViewRecorder?.setRecordedView(it)
-        }
-        try {
-            mViewRecorder!!.prepare()
-            mViewRecorder!!.start()
-        } catch (e: IOException) {
-            Log.e("TAG", "startRecord failed", e)
-            return
-        }
-
-        Log.d("TAG", "startRecord successfully!")
-        mRecording = true
-    }
-
-    private fun stopRecord() {
-        try {
-            mViewRecorder!!.stop()
-            mViewRecorder!!.reset()
-            mViewRecorder!!.release()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        mRecording = false
-        Log.d("TAG", "stopRecord successfully!")
+    private fun checkPermission(){
+        val permissions = Permissions(this,
+            arrayListOf(Manifest.permission.CAMERA,
+                Manifest.permission.RECORD_AUDIO
+            ),
+            23)
+        permissions.checkPermissions()
     }
 }
 
@@ -239,19 +182,27 @@ fun OpenGLScreen() {
             },
             update = { view->
                 mView = view
-                text?.textSize=99f
                 getData(context)
             }
         )
 
-        Text(text = "Hello", color = Color.White, fontSize = 34.sp)
+        Text(modifier = Modifier.clickable {
+            showDialog(context)
+        }, text = "Hello", color = Color.White, fontSize = 34.sp)
     }
+}
+
+private fun showDialog(context: Context) {
+    AlertDialog.Builder(context)
+        .setTitle("Dialog Title")
+        .setMessage("This is a dialog message.")
+        .setPositiveButton(android.R.string.ok, null)
+        .show()
 }
 
 fun getData(context: Context) {
     mGLView?.resume()
     try {
-
         mOutputFile = createVideoOutputFile(context)
         val size = getScreenSize(context)
         mGLView?.initRecorder(mOutputFile!!, size.x, size.y, null, null)
@@ -293,11 +244,7 @@ private fun createVideoOutputFile(context: Context): File? {
     var filesDir = ""
 
     try {
-        filesDir = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            context.getExternalFilesDir(null)!!.path
-        } else {
-            context.filesDir.canonicalPath
-        }
+        filesDir =  Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).path.toString()
 
         val dirCheck = File("$filesDir/captures")
 

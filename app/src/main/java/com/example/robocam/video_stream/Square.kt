@@ -1,12 +1,13 @@
 package com.example.robocam.video_stream
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.MediaCodec
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
 import android.util.Log
-import android.view.Surface
 import com.example.robocam.utils.Utility.checkFramebufferStatus
 import com.example.robocam.utils.Utility.checkGLError
 import com.example.robocam.utils.Utility.compileShader
@@ -15,6 +16,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
+
 
 /**
  * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.

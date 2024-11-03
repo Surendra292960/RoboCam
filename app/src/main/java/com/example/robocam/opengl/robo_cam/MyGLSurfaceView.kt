@@ -1,13 +1,11 @@
 package com.example.robocam.opengl.robo_cam
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.media.MediaCodec
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.util.Log
-import android.view.Surface
 import com.example.robocam.opengl.MyCamera
 import com.example.robocam.utils.Utility.checkFramebufferStatus
 import com.example.robocam.utils.Utility.compileShader
@@ -33,8 +31,6 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
     private var textureHeight: Int = 0
     private var vertexShader = 0
     private var fragmentShader = 0
-
-    var mSurface: Surface? = null
 
     private val vertexShaderSource = """
         attribute vec4 position;
@@ -97,7 +93,6 @@ class MyGLSurfaceView(context: Context?, var client: MyCamera, val flag: Boolean
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
-        mSurface = MediaCodec.createPersistentInputSurface()
         // Load shaders and create program
         vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource)
         fragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSource)

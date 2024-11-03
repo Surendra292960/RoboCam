@@ -1,4 +1,4 @@
-package com.example.videorecorder
+package com.example.robocam.utils
 
 import android.graphics.Canvas
 import android.media.MediaRecorder

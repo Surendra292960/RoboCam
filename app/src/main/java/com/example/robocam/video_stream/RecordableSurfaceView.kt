@@ -1,19 +1,6 @@
-/*
- * Copyright 2017 Uncorked Studios Inc. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.robocam.video_stream
 
+import android.app.AlertDialog
 import android.content.Context
 import android.media.MediaCodec
 import android.media.MediaRecorder
@@ -27,13 +14,10 @@ import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.widget.TextView
-import androidx.compose.material3.Text
-import androidx.compose.ui.unit.dp
-import com.example.robocam.R
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -41,20 +25,9 @@ import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
-/**
- * Used to record video of the content of a SurfaceView, backed by a GL render loop.
- *
- *
- * Intended as a near-drop-in replacement for [GLSurfaceView], but reliant on callbacks
- * instead of an explicit [GLSurfaceView.Renderer].
- *
- *
- *
- * **Note:** Currently, RecordableSurfaceView does not record video on the emulator
- * due to a dependency on [MediaRecorder].
- */
+
 open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
-    var mSurface: Surface? = null
+    private var mSurface: Surface? = null
 
     private val mRenderMode = AtomicInteger(RENDERMODE_CONTINUOUSLY)
 
@@ -108,6 +81,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      */
     var preserveEGLContextOnPause: Boolean = false
 
+
     /**
      * Performs necessary setup operations such as creating a MediaCodec persistent surface and
      * setting up initial state.
@@ -120,7 +94,8 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      *
      * @see SurfaceHolder.Callback
      */
-    private fun doSetup() {
+    fun doSetup() {
+
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
             mARRenderThread = ARRenderThread()
@@ -134,6 +109,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
         mPaused = true
     }
+
 
     /**
      * Pauses the render thread.
@@ -205,7 +181,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      *
      * Must not be called before a renderer has been set.
      */
-    private fun requestRender() {
+    fun requestRender() {
         mRenderRequested.set(true)
     }
 
@@ -307,6 +283,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         var success = true
         try {
             mMediaRecorder!!.start()
+            //mARRenderThread!!.showDialog(holder)
             mIsRecording.set(true)
         } catch (e: IllegalStateException) {
             success = false
@@ -440,16 +417,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
         var mRunnableQueue: LinkedList<Runnable> = LinkedList()
 
-        var config: IntArray = intArrayOf(
-            EGL14.EGL_RED_SIZE, 8,
-            EGL14.EGL_GREEN_SIZE, 8,
-            EGL14.EGL_BLUE_SIZE, 8,
-            EGL14.EGL_ALPHA_SIZE, 8,
-            EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT,
-            0x3142, 1,
-            EGL14.EGL_DEPTH_SIZE, 16,
-            EGL14.EGL_NONE
-        )
+        var config: IntArray = intArrayOf(EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8, EGL14.EGL_BLUE_SIZE, 8, EGL14.EGL_ALPHA_SIZE, 8, EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, 0x3142, 1, EGL14.EGL_DEPTH_SIZE, 16, EGL14.EGL_NONE)
 
 
         private val mLoop = AtomicBoolean(false)
@@ -463,10 +431,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         fun chooseEglConfig(eglDisplay: EGLDisplay?): EGLConfig? {
             val configsCount = intArrayOf(0)
             val configs = arrayOfNulls<EGLConfig>(1)
-            EGL14.eglChooseConfig(
-                eglDisplay, config, 0, configs, 0, configs.size, configsCount,
-                0
-            )
+            EGL14.eglChooseConfig(eglDisplay, config, 0, configs, 0, configs.size, configsCount, 0)
             return configs[0]
         }
 
@@ -479,47 +444,29 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
             EGL14.eglInitialize(mEGLDisplay, version, 0, version, 1)
             val eglConfig = chooseEglConfig(mEGLDisplay)
             if (!mHasGLContext.get()) {
-                mEGLContext = EGL14
-                    .eglCreateContext(
-                        mEGLDisplay, eglConfig, EGL14.EGL_NO_CONTEXT,
-                        intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE), 0
-                    )
+                mEGLContext = EGL14.eglCreateContext(mEGLDisplay, eglConfig, EGL14.EGL_NO_CONTEXT, intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE), 0)
                 mHasGLContext.set(true)
             }
 
-            val surfaceAttribs = intArrayOf(
-                EGL14.EGL_NONE
-            )
+            val surfaceAttribs = intArrayOf(EGL14.EGL_NONE)
 
-            mEGLSurface = EGL14
-                .eglCreateWindowSurface(
-                    mEGLDisplay, eglConfig, this@RecordableSurfaceView,
-                    surfaceAttribs, 0
-                )
+            mEGLSurface = EGL14.eglCreateWindowSurface(mEGLDisplay, eglConfig, this@RecordableSurfaceView, surfaceAttribs, 0)
             EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext)
 
             // guarantee to only report surface as created once GL context
             // associated with the surface has been created, and call on the GL thread
             // NOT the main thread but BEFORE the codec surface is attached to the GL context
-            if (mRendererCallbacksWeakReference != null
-                && mRendererCallbacksWeakReference!!.get() != null
-            ) {
+            if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                 mRendererCallbacksWeakReference!!.get()!!.onSurfaceCreated()
             }
 
-            mEGLSurfaceMedia = EGL14
-                .eglCreateWindowSurface(
-                    mEGLDisplay, eglConfig, mSurface,
-                    surfaceAttribs, 0
-                )
+            mEGLSurfaceMedia = EGL14.eglCreateWindowSurface(mEGLDisplay, eglConfig, mSurface, surfaceAttribs, 0)
 
             GLES20.glClearColor(0.1f, 0.1f, 0.1f, 1.0f)
 
             mHasGLSurface.set(true)
 
-            if (mRendererCallbacksWeakReference != null
-                && mRendererCallbacksWeakReference!!.get() != null
-            ) {
+            if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                 mRendererCallbacksWeakReference!!.get()!!.onContextCreated()
             }
 
@@ -543,48 +490,33 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                     if (mSizeChange.get()) {
                         GLES20.glViewport(0, 0, mWidth, mHeight)
 
-                        if (mRendererCallbacksWeakReference != null
-                            && mRendererCallbacksWeakReference!!.get() != null
-                        ) {
-                            mRendererCallbacksWeakReference!!.get()!!
-                                .onSurfaceChanged(mWidth, mHeight)
+                        if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
+                            mRendererCallbacksWeakReference!!.get()!!.onSurfaceChanged(mWidth, mHeight)
                         }
 
                         mSizeChange.set(false)
                     }
 
                     if (shouldRender && mEGLSurface != null && mEGLSurface !== EGL14.EGL_NO_SURFACE) {
-                        if (mRendererCallbacksWeakReference != null
-                            && mRendererCallbacksWeakReference!!.get() != null
-                        ) {
+                        if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                             mRendererCallbacksWeakReference!!.get()!!.onPreDrawFrame()
                         }
 
-                        if (mRendererCallbacksWeakReference != null
-                            && mRendererCallbacksWeakReference!!.get() != null
-                        ) {
+                        if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                             mRendererCallbacksWeakReference!!.get()!!.onDrawFrame()
                         }
 
                         EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurface)
 
                         if (mIsRecording.get()) {
-                            EGL14.eglMakeCurrent(
-                                mEGLDisplay, mEGLSurfaceMedia, mEGLSurfaceMedia,
-                                mEGLContext
-                            )
-                            if (mRendererCallbacksWeakReference != null
-                                && mRendererCallbacksWeakReference!!.get() != null
-                            ) {
+                            EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurfaceMedia, mEGLSurfaceMedia, mEGLContext)
+                            if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                                 GLES20.glViewport(0, 0, mDesiredWidth, mDesiredHeight)
                                 mRendererCallbacksWeakReference!!.get()!!.onDrawFrame()
                                 GLES20.glViewport(0, 0, mWidth, mHeight)
                             }
                             EGL14.eglSwapBuffers(mEGLDisplay, mEGLSurfaceMedia)
-                            EGL14.eglMakeCurrent(
-                                mEGLDisplay, mEGLSurface, mEGLSurface,
-                                mEGLContext
-                            )
+                            EGL14.eglMakeCurrent(mEGLDisplay, mEGLSurface, mEGLSurface, mEGLContext)
                         }
                     }
 
@@ -596,19 +528,12 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                 try {
                     sleep((1f / 60f * 1000f).toLong())
                 } catch (intex: InterruptedException) {
-                    if (mRendererCallbacksWeakReference != null
-                        && mRendererCallbacksWeakReference!!.get() != null
-                    ) {
+                    if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                         mRendererCallbacksWeakReference!!.get()!!.onSurfaceDestroyed()
                     }
 
                     if (mEGLDisplay != null) {
-                        EGL14.eglMakeCurrent(
-                            mEGLDisplay,
-                            EGL14.EGL_NO_SURFACE,
-                            EGL14.EGL_NO_SURFACE,
-                            if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT
-                        )
+                        EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT)
 
                         if (mEGLSurface != null) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)
@@ -637,7 +562,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         }
 
         override fun surfaceCreated(surfaceHolder: SurfaceHolder) {
-            if (!this.isAlive && !this.isInterrupted && this.state != State.TERMINATED) {
+            if ((!this.isAlive && !this.isInterrupted) && this.state != State.TERMINATED) {
                 this.start()
             }
         }
@@ -659,6 +584,19 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
             this.interrupt()
             holder.removeCallback(this@ARRenderThread)
         }
+
+        fun showDialog(holder: SurfaceHolder?) {
+            Log.d(TAG, "showDialog: ")
+            showDialog(context = context)
+        }
+    }
+
+    private fun showDialog(context: Context) {
+        AlertDialog.Builder(context)
+            .setTitle("Dialog Title")
+            .setMessage("This is a dialog message.")
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     companion object {

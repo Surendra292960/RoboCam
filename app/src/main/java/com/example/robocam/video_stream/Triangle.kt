@@ -16,7 +16,8 @@
 package com.example.robocam.video_stream
 
 import android.opengl.GLES20
-import com.example.robocam.utils.Utility
+import com.example.robocam.utils.Utility.checkGlError
+import com.example.robocam.utils.Utility.loadShader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -24,7 +25,7 @@ import java.nio.FloatBuffer
 /**
  * A two-dimensional triangle for use as a drawn object in OpenGL ES 2.0.
  */
-class Triangle {
+class Triangle() {
     private val vertexShaderCode =  // This matrix member variable provides a hook to manipulate
         // the coordinates of the objects that use this vertex shader
         "uniform mat4 uMVPMatrix;" +
@@ -35,11 +36,11 @@ class Triangle {
                 "  gl_Position = uMVPMatrix * vPosition;" +
                 "}"
 
-    private val fragmentShaderCode = "precision mediump float;" +
+    private val fragmentShaderCode = ("precision mediump float;" +
             "uniform vec4 vColor;" +
             "void main() {" +
             "  gl_FragColor = vColor;" +
-            "}"
+            "}")
 
     private val vertexBuffer: FloatBuffer
     private val mProgram: Int
@@ -71,10 +72,10 @@ class Triangle {
         vertexBuffer.position(0)
 
         // prepare shaders and OpenGL program
-        val vertexShader: Int = Utility.loadShader(
+        val vertexShader: Int = loadShader(
             GLES20.GL_VERTEX_SHADER, vertexShaderCode
         )
-        val fragmentShader: Int = Utility.loadShader(
+        val fragmentShader: Int = loadShader(
             GLES20.GL_FRAGMENT_SHADER, fragmentShaderCode
         )
 
@@ -115,11 +116,11 @@ class Triangle {
 
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix")
-        Utility.checkGlError("glGetUniformLocation")
+        checkGlError("glGetUniformLocation")
 
         // Apply the projection and view transformation
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0)
-        Utility.checkGlError("glUniformMatrix4fv")
+        checkGlError("glUniformMatrix4fv")
 
         // Draw the triangle
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount)
@@ -130,7 +131,7 @@ class Triangle {
 
     companion object {
         // number of coordinates per vertex in this array
-        const val COORDS_PER_VERTEX: Int = 3
+        val COORDS_PER_VERTEX: Int = 3
 
         /*
             0.0f,  0.5f, 0.0f,   // top

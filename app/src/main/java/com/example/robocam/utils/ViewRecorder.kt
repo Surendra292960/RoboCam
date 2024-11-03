@@ -8,7 +8,6 @@ import android.os.Looper
 import android.util.Log
 import android.util.Size
 import android.view.View
-import com.example.videorecorder.SurfaceMediaRecorder
 
 /**
  * Used to record a video with view that can be captured. It also supports to switch views during recording.
