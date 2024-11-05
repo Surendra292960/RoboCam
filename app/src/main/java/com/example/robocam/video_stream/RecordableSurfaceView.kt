@@ -18,6 +18,7 @@ import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.FrameLayout
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -94,7 +95,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      *
      * @see SurfaceHolder.Callback
      */
-    fun doSetup() {
+    private fun doSetup() {
 
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
@@ -559,6 +560,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
 
         override fun surfaceRedrawNeeded(surfaceHolder: SurfaceHolder) {
+
         }
 
         override fun surfaceCreated(surfaceHolder: SurfaceHolder) {

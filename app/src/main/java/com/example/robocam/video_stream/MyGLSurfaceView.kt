@@ -1,9 +1,21 @@
 package com.example.robocam.video_stream
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Bitmap.CompressFormat
+import android.graphics.PixelFormat
+import android.opengl.GLES20
+import android.os.Environment
 import android.util.Log
 import android.view.MotionEvent
+import android.view.SurfaceHolder
 import com.example.robocam.video_stream.RecordableSurfaceView.RendererCallbacks
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.nio.IntBuffer
+import javax.microedition.khronos.opengles.GL10
+
 
 class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), RendererCallbacks {
     // Set the Renderer for drawing on the GLSurfaceView
@@ -13,14 +25,26 @@ class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), Render
 
     init {
         rendererCallbacks = this
+        this.holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+        this.holder.setFormat(PixelFormat.TRANSLUCENT);
+        setZOrderOnTop(false); //CODE TO SET VIDEO VIEW TO BACK
     }
 
-    override fun onTouchEvent(e: MotionEvent): Boolean {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
         // MotionEvent reports input details from the touch screen
         // and other input controls. In this case, you are only
         // interested in events where the touch position changed.
-        return true
+        return super.onTouchEvent(event);
     }
+
+    private fun showDialog(context: Context) {
+        AlertDialog.Builder(context)
+            .setTitle("Dialog Title")
+            .setMessage("This is a dialog message.")
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
 
     override fun onSurfaceCreated() {
         mRenderer.onSurfaceCreated(null, null)

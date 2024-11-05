@@ -85,7 +85,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
 
     Box(modifier = Modifier
         .size(300.dp)
-        .background(Color.White)
+        .background(Color.Transparent)
         .pointerInput(Unit) {
             detectDragGestures(
                 onDragEnd = {
