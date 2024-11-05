@@ -2,6 +2,8 @@ package com.example.robocam.video_stream
 
 import android.app.AlertDialog
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Bitmap.CompressFormat
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.opengl.EGL14
@@ -13,13 +15,16 @@ import android.opengl.EGLSurface
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.ref.WeakReference
+import java.nio.IntBuffer
 import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -320,6 +325,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         }
     }
 
+
     var rendererCallbacks: RendererCallbacks?
         /**
          * Returns the reference (if any) to the [RendererCallbacks]
@@ -488,6 +494,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
                     if (mSizeChange.get()) {
                         GLES20.glViewport(0, 0, mWidth, mHeight)
+                        Log.d(TAG, "showDialog run : $mWidth $mHeight")
 
                         if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                             mRendererCallbacksWeakReference!!.get()!!.onSurfaceChanged(mWidth, mHeight)

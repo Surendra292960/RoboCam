@@ -5,7 +5,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Point
-import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,7 +17,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -42,10 +40,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.FileProvider
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.Permissions
-import com.example.robocam.utils.ViewRecorder
 import com.example.robocam.video_stream.MyGLSurfaceView
 import com.example.robocam.video_stream.PermissionsHelper
 import com.example.robocam.video_stream.RecordableSurfaceView
@@ -56,6 +52,7 @@ import java.util.Date
 
 var mView: View? = null
 private var mGLView: RecordableSurfaceView? = null
+private var mMyGLView: MyGLSurfaceView? = null
 private var mOutputFile: File? = null
 
 class MainActivity : ComponentActivity() {
@@ -176,6 +173,7 @@ fun OpenGLScreen() {
             factory = {
                 mView.let {
                    MyGLSurfaceView(context).also { glView ->
+                       mMyGLView = glView
                        mGLView = glView // Store reference to mGLView
                    }
                }
@@ -183,12 +181,11 @@ fun OpenGLScreen() {
             update = { view->
                 mView = view
                 getData(context)
-              //  mGLView?.takeScreenshot()
             }
         )
 
         Text(modifier = Modifier.clickable {
-            showDialog(context)
+            mMyGLView?.mRenderer?.isSave = true
         }, text = "Hello", color = Color.White, fontSize = 34.sp)
     }
 }
