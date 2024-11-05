@@ -13,12 +13,10 @@ import android.opengl.EGLSurface
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
-import android.util.AttributeSet
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.widget.FrameLayout
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference

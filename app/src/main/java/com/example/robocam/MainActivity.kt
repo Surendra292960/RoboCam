@@ -123,9 +123,9 @@ class MainActivity : ComponentActivity() {
         if (mIsRecording) {
             mGLView!!.stopRecording()
 
-            val contentUri = FileProvider.getUriForFile(this, "com.example.robocam.fileprovider", mOutputFile!!)
+         /*   val contentUri = FileProvider.getUriForFile(this, "com.example.robocam.fileprovider", mOutputFile!!)
 
-            share(contentUri)
+            share(contentUri)*/
             mIsRecording = false
             mOutputFile = createVideoOutputFile(this)
 
@@ -183,6 +183,7 @@ fun OpenGLScreen() {
             update = { view->
                 mView = view
                 getData(context)
+              //  mGLView?.takeScreenshot()
             }
         )
 

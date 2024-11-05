@@ -1,4 +1,5 @@
 package com.example.robocam.video_stream
+import android.R.attr
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
@@ -135,6 +136,7 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
 
         // Flip the bitmap vertically since OpenGL's origin is at the bottom-left
        // Matrix.flip(bitmap, true)
+        //Matrix.setRotateM(mRotationMatrix, 0, 90f, 0f, 0f, 1.0f)
 
         // Save the bitmap to a file
         saveBitmap(bitmap)
