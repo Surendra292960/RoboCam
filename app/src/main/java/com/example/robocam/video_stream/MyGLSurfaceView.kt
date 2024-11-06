@@ -7,7 +7,7 @@ import android.view.SurfaceHolder
 import com.example.robocam.video_stream.RecordableSurfaceView.RendererCallbacks
 
 
-class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), RendererCallbacks {
+class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), RendererCallbacks{
     // Set the Renderer for drawing on the GLSurfaceView
     val mRenderer = MyGLRenderer(context)
     private var mPreviousX = 0f

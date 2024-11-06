@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.robocam.joystick.JoyStick
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.Permissions
 import com.example.robocam.video_stream.MyGLSurfaceView
@@ -270,18 +273,18 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
 
         JoyStickController() { x, y ->
             // joystickCoordinates = coordinates // Update the coordinates in the parent
-            Log.d("TAG", "JetStickUI: $x, $y")
+            Log.d("TAG", "JetStickUI ONE: $x, $y")
         }
 
-        /*   JoyStick(
+           JoyStick(
                Modifier.padding(30.dp),
                size = 150.dp,
                dotSize = 70.dp,
                viewModel = viewModel
            ) { x: Float, y: Float ->
                viewModel.setCoordinates(x,y)
-               Log.d("TAG", "JoyStick Camera: $x, $y")
-           }*/
+               Log.d("TAG", "JetStickUI Camera: $x, $y")
+           }
     }
 }
 

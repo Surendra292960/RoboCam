@@ -252,12 +252,14 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder.setInputSurface(mSurface!!)
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+       // mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
+       // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
 
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mediaRecorder.setAudioSamplingRate(44100)
-        mediaRecorder.setAudioEncodingBitRate(96000)
+       // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+       // mediaRecorder.setAudioSamplingRate(44100)
+       // mediaRecorder.setAudioEncodingBitRate(96000)
+
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
 
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
 
