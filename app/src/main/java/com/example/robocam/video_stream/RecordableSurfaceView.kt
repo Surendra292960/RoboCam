@@ -431,7 +431,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
     private inner class ARRenderThread : Thread(), SurfaceHolder.Callback2 {
         var mEGLDisplay: EGLDisplay? = null
 
-        var mEGLContext: EGLContext? = null
 
         var mEGLSurface: EGLSurface? = null
 
@@ -520,6 +519,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                     }
 
                     if (shouldRender && mEGLSurface != null && mEGLSurface !== EGL14.EGL_NO_SURFACE) {
+                        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
                         if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                             mRendererCallbacksWeakReference!!.get()!!.onPreDrawFrame()
                         }
@@ -549,13 +549,16 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                 }
                 try {
                     sleep((1f / 60f * 1000f).toLong())
-                } catch (intex: InterruptedException) {
+                } catch (e: InterruptedException) {
                     if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                         mRendererCallbacksWeakReference!!.get()!!.onSurfaceDestroyed()
                     }
 
                     if (mEGLDisplay != null) {
-                        EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT)
+                      //  EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT)
+                        EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, mEGLContext)
+
+                        Log.d(TAG, "run InterruptedException: ${mEGLContext.hashCode()}")
 
                         if (mEGLSurface != null) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurface)
@@ -565,14 +568,14 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurfaceMedia)
                         }
                         if (!preserveEGLContextOnPause) {
-                            EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)
-                            mHasGLContext.set(false)
+                           // EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)
+                            mHasGLContext.set(true)
                         }
 
                         mHasGLSurface.set(false)
                         EGL14.eglReleaseThread()
                         EGL14.eglTerminate(mEGLDisplay)
-                        mSurface!!.release()
+                        mSurface?.release()
                     }
                     return
                 }
@@ -623,6 +626,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
          */
         var RENDERMODE_CONTINUOUSLY: Int = GLSurfaceView.RENDERMODE_CONTINUOUSLY
 
-        private val mEGLContext: EGLContext? = null
+        private var mEGLContext: EGLContext? = null
     }
 }
