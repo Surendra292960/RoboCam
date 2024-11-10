@@ -10,9 +10,7 @@ import android.util.Log
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
-internal class MyGLSurfaceView(context: Context?, private val mCamera: MyCamera) :
-    GLSurfaceView(context),
-    GLSurfaceView.Renderer {
+internal class MyGLSurfaceView(context: Context?, private val mCamera: MyCamera) : GLSurfaceView(context), GLSurfaceView.Renderer {
     private var mSurface: SurfaceTexture? = null
     private var mDirectVideo: DirectVideo? = null
 

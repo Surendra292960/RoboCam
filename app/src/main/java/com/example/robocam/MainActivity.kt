@@ -9,6 +9,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
@@ -62,12 +64,21 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private var mIsRecording = false
 
+    private lateinit var mainHandler: Handler
+
+
+    fun getMainHandler(): Handler {
+        return mainHandler
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
         mView = layout.findViewById<LinearLayout>(R.id.root)
+
+        mainHandler = Handler(Looper.getMainLooper())
+
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
@@ -280,7 +291,6 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
                Modifier.padding(30.dp),
                size = 150.dp,
                dotSize = 70.dp,
-               viewModel = viewModel
            ) { x: Float, y: Float ->
                viewModel.setCoordinates(x,y)
                Log.d("TAG", "JetStickUI Camera: $x, $y")

@@ -1,9 +1,9 @@
 package com.example.robocam.video_stream
-
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Bitmap.CompressFormat
+import android.graphics.Canvas
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.opengl.EGL14
@@ -15,16 +15,18 @@ import android.opengl.EGLSurface
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
-import android.os.Environment
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.view.View
+import android.view.ViewGroup
+import com.example.robocam.MainActivity
+import com.example.robocam.R
 import java.io.File
-import java.io.FileOutputStream
 import java.io.IOException
 import java.lang.ref.WeakReference
-import java.nio.IntBuffer
 import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -99,6 +101,21 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      * @see SurfaceHolder.Callback
      */
     private fun doSetup() {
+     /*   val activity: Activity = MainActivity()
+        if (activity != null) {
+            val inflater:LayoutInflater = LayoutInflater.from(context)
+            val view: View = inflater.inflate(R.layout.image, null)
+
+            val contentView: View = view.findViewById(android.R.id.content)
+            if (contentView != null) {
+                mWidth = contentView.width
+                mHeight = contentView.height
+            }
+            if (0 == mWidth || 0 == mHeight) {
+                mWidth = activity.resources.displayMetrics.widthPixels
+                mHeight = activity.resources.displayMetrics.heightPixels
+            }
+        }*/
 
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
@@ -252,14 +269,12 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder.setInputSurface(mSurface!!)
-       // mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-       // mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-
-       // mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-       // mediaRecorder.setAudioSamplingRate(44100)
-       // mediaRecorder.setAudioEncodingBitRate(96000)
-
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+        mediaRecorder.setAudioSamplingRate(44100)
+        mediaRecorder.setAudioEncodingBitRate(96000)
 
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT)
 
@@ -289,7 +304,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         var success = true
         try {
             mMediaRecorder!!.start()
-            //mARRenderThread!!.showDialog(holder)
             mIsRecording.set(true)
         } catch (e: IllegalStateException) {
             success = false
@@ -299,6 +313,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
         }
         return success
     }
+
 
     /**
      * Stops the [MediaRecorder] and sets the internal state of this object to 'Not
@@ -496,7 +511,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
                     if (mSizeChange.get()) {
                         GLES20.glViewport(0, 0, mWidth, mHeight)
-                        Log.d(TAG, "showDialog run : $mWidth $mHeight")
 
                         if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
                             mRendererCallbacksWeakReference!!.get()!!.onSurfaceChanged(mWidth, mHeight)
@@ -593,19 +607,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
             this.interrupt()
             holder.removeCallback(this@ARRenderThread)
         }
-
-        fun showDialog(holder: SurfaceHolder?) {
-            Log.d(TAG, "showDialog: ")
-            showDialog(context = context)
-        }
-    }
-
-    private fun showDialog(context: Context) {
-        AlertDialog.Builder(context)
-            .setTitle("Dialog Title")
-            .setMessage("This is a dialog message.")
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
     }
 
     companion object {

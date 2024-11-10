@@ -161,7 +161,7 @@ class Square (context: Context){
      * @param mvpMatrix - The Model View Project matrix in which to draw
      * this shape.
      */
-    fun draw(mvpMatrix: FloatArray?) {
+    fun draw() {
         Log.d("TAG", "render glBindTexture : $textureID  $textureWidth  $textureHeight")
         GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
@@ -210,5 +210,32 @@ class Square (context: Context){
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
         // Check for OpenGL errors
         checkGLError()
+    }
+
+    fun renderBitmap(bitmap: Bitmap) {
+        // Create a texture handle
+        val textureHandle = IntArray(1)
+        GLES20.glGenTextures(1, textureHandle, 0)
+
+        // Bind the texture
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0])
+
+        // Set texture parameters
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+        // Load the bitmap into the texture
+        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+
+        // Now draw the texture on the OpenGL surface
+        // Set up your shader program and draw the texture
+        // ...
+
+        // Clean up
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0) // Unbind the texture
+        GLES20.glDeleteTextures(1, textureHandle, 0) // Delete the texture handle
+
+        // You can recycle the bitmap here if you're done with it
+       // bitmap.recycle() // Ensure this is called only after rendering is complete
     }
 }

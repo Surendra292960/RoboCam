@@ -1,12 +1,18 @@
 package com.example.robocam.video_stream
+import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
+import android.graphics.Canvas
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
-import android.opengl.Matrix
 import android.os.Environment
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewTreeObserver
+import com.example.robocam.MainActivity
+import com.example.robocam.R
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -21,22 +27,8 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
     private var mWidth = 0
     private var mHeight = 0
     var isSave = false
-
-    // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
-    private val mMVPMatrix = FloatArray(16)
-    private val mProjectionMatrix = FloatArray(16)
-    private val mViewMatrix = FloatArray(16)
-    private val mRotationMatrix = FloatArray(16)
-
-    /**
-     * Returns the rotation angle of the triangle shape (mTriangle).
-     *
-     * @return - A float representing the rotation angle.
-     */
-    /**
-     * Sets the rotation angle of the triangle shape (mTriangle).
-     */
-    var angle: Float = 0f
+    private lateinit var dialogView: View
+    private var dialogBitmap: Bitmap? = null
 
     override fun onSurfaceCreated(unused: GL10?, config: EGLConfig?) {
         // Set the background frame color
@@ -48,57 +40,45 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(unused: GL10?) {
-        val scratch = FloatArray(16)
-
-        // Draw background color
-        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
-        // Set the camera position (View matrix)
-        Matrix.setLookAtM(mViewMatrix, 0, 0f, 0f, -3f, 0f, 0f, 0f, 0f, 1.0f, 0.0f)
-
-        // Calculate the projection and view transformation
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0)
-
         // Draw square
-        mSquare!!.draw(mMVPMatrix)
-
-        // Create a rotation for the triangle
-
-        // Use the following code to generate constant rotation.
-        // Leave this code out when using TouchEvents.
-        // long time = SystemClock.uptimeMillis() % 4000L;
-        // float angle = 0.090f * ((int) time);
-        Matrix.setRotateM(mRotationMatrix, 0, angle, 0f, 0f, 1.0f)
-
-        // Combine the rotation matrix with the projection and camera view
-        // Note that the mMVPMatrix factor *must be first* in order
-        // for the matrix multiplication product to be correct.
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0)
-
+        mSquare!!.draw()
         // Draw triangle
         //mTriangle!!.draw(scratch)
-
+        if (dialogBitmap != null) {
+            mSquare!!.renderBitmap(bitmap = dialogBitmap!!)
+        }
         if (isSave){
-            takeScreenshot()
+            Log.d("TAG", "onDrawFrame: showDialog")
+           // takeScreenshot()
+            showDialog()
             isSave = false
+        }
+
+    }
+
+    fun showDialog() {
+        // Inflate and show the dialog
+        (context as MainActivity).getMainHandler().post{
+            dialogView = LayoutInflater.from(context).inflate(R.layout.image, null)
+            val dialog = AlertDialog.Builder(context)
+                .setView(dialogView)
+                .create()
+            dialog.show()
+
+            // Capture the dialog's view into a bitmap
+            dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            dialogView.layout(0, 0, dialogView.measuredWidth, dialogView.measuredHeight)
+            dialogBitmap = Bitmap.createBitmap(dialogView.measuredWidth, dialogView.measuredHeight, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(dialogBitmap!!)
+            dialogView.draw(canvas)
         }
     }
 
+
     override fun onSurfaceChanged(unused: GL10?, width: Int, height: Int) {
-        // Adjust the viewport based on geometry changes,
-        // such as screen rotation
         GLES20.glViewport(0, 0, width, height)
-
-        mWidth = width;
-        mHeight = height;
-
-       // val ratio = width.toFloat() / height
-
-        // this projection matrix is applied to object coordinates
-        // in the onDrawFrame() method
-        //Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1f, 1f, 3f, 7f)
     }
-
 
 
     private fun saveBitmap(bitmap: Bitmap) {
