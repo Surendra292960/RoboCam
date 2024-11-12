@@ -1,9 +1,8 @@
 package com.example.robocam.video_stream
+
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.Paint
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.GLUtils
@@ -17,11 +16,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-
-/**
- * A two-dimensional square for use as a drawn object in OpenGL ES 2.0.
- */
-class Square (context: Context){
+class ImageSquare(context: Context) {
     private var program: Int = 0
     private var positionAttrib: Int = 0
     private var texCoordAttrib: Int = 0
@@ -236,6 +231,6 @@ class Square (context: Context){
         GLES20.glDeleteTextures(1, textureHandle, 0) // Delete the texture handle
 
         // You can recycle the bitmap here if you're done with it
-       // bitmap.recycle() // Ensure this is called only after rendering is complete
+        // bitmap.recycle() // Ensure this is called only after rendering is complete
     }
 }

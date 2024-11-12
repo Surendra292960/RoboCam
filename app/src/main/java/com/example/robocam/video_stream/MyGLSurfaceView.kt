@@ -13,9 +13,9 @@ class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), Render
 
     init {
         rendererCallbacks = this
-/*        this.holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
-        this.holder.setFormat(PixelFormat.TRANSLUCENT)
-        setZOrderOnTop(true) //CODE TO SET VIDEO VIEW TO BACK*/
+      //  this.holder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
+       // this.holder.setFormat(PixelFormat.TRANSLUCENT)
+        //setZOrderOnTop(true) //CODE TO SET VIDEO VIEW TO BACK
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

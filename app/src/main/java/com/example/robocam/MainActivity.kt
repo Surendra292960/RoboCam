@@ -82,10 +82,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
-                       Box(modifier = Modifier.fillMaxSize(),
+                      /* Box(modifier = Modifier.fillMaxSize(),
                            contentAlignment = Alignment.Center){
                            JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-                       }
+                       }*/
                 }
             }
         }

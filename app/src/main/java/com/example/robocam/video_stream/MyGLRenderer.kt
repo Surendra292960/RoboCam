@@ -10,7 +10,6 @@ import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewTreeObserver
 import com.example.robocam.MainActivity
 import com.example.robocam.R
 import java.io.File
@@ -22,8 +21,9 @@ import javax.microedition.khronos.opengles.GL10
 
 
 class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
+    private var dialog: AlertDialog?=null
     private var mTriangle: Triangle? = null
-    private var mSquare: Square? = null
+    private var mSquare: ImageSquare? = null
     private var mWidth = 0
     private var mHeight = 0
     var isSave = false
@@ -34,40 +34,47 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         // Set the background frame color
 
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
-        mTriangle = Triangle()
-        mSquare = Square(context = context)
+        mTriangle = Triangle(context)
+        //mSquare = ImageSquare(context = context)
     }
 
     override fun onDrawFrame(unused: GL10?) {
-        // Draw square
-        mSquare!!.draw()
+      //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+
         // Draw triangle
-        //mTriangle!!.draw(scratch)
-        if (dialogBitmap != null) {
-            mSquare!!.renderBitmap(bitmap = dialogBitmap!!)
-        }
+        mTriangle?.draw()
+        // Draw square
+       // mSquare?.draw()
+
+
         if (isSave){
             Log.d("TAG", "onDrawFrame: showDialog")
-           // takeScreenshot()
+            // takeScreenshot()
             showDialog()
             isSave = false
         }
 
+        if (dialogBitmap != null) {
+           // mSquare?.renderBitmap(bitmap = dialogBitmap!!)
+            mTriangle?.setupDialogTexture(bitmap = dialogBitmap!!)
+        }
+
     }
 
-    fun showDialog() {
+    private fun showDialog() {
+        cancelDialog()
         // Inflate and show the dialog
         (context as MainActivity).getMainHandler().post{
             dialogView = LayoutInflater.from(context).inflate(R.layout.image, null)
-            val dialog = AlertDialog.Builder(context)
-                .setView(dialogView)
-                .create()
-            dialog.show()
-
+            dialog = AlertDialog.Builder(context).setView(dialogView).create()
+            dialog?.show()
+            cancelDialog()
+            mTriangle?.result = true
             // Capture the dialog's view into a bitmap
             dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
             dialogView.layout(0, 0, dialogView.measuredWidth, dialogView.measuredHeight)
             dialogBitmap = Bitmap.createBitmap(dialogView.measuredWidth, dialogView.measuredHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(dialogBitmap!!)
@@ -75,11 +82,16 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
     }
 
+    private fun cancelDialog(){
+        if (dialog!=null){
+            mTriangle?.result = false
+            dialog?.hide()
+        }
+    }
 
     override fun onSurfaceChanged(unused: GL10?, width: Int, height: Int) {
         GLES20.glViewport(0, 0, width, height)
     }
-
 
     private fun saveBitmap(bitmap: Bitmap) {
         try {

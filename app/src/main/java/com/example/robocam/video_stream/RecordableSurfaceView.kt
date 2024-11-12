@@ -101,21 +101,21 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      * @see SurfaceHolder.Callback
      */
     private fun doSetup() {
-     /*   val activity: Activity = MainActivity()
-        if (activity != null) {
-            val inflater:LayoutInflater = LayoutInflater.from(context)
-            val view: View = inflater.inflate(R.layout.image, null)
+        /*   val activity: Activity = MainActivity()
+           if (activity != null) {
+               val inflater:LayoutInflater = LayoutInflater.from(context)
+               val view: View = inflater.inflate(R.layout.image, null)
 
-            val contentView: View = view.findViewById(android.R.id.content)
-            if (contentView != null) {
-                mWidth = contentView.width
-                mHeight = contentView.height
-            }
-            if (0 == mWidth || 0 == mHeight) {
-                mWidth = activity.resources.displayMetrics.widthPixels
-                mHeight = activity.resources.displayMetrics.heightPixels
-            }
-        }*/
+               val contentView: View = view.findViewById(android.R.id.content)
+               if (contentView != null) {
+                   mWidth = contentView.width
+                   mHeight = contentView.height
+               }
+               if (0 == mWidth || 0 == mHeight) {
+                   mWidth = activity.resources.displayMetrics.widthPixels
+                   mHeight = activity.resources.displayMetrics.heightPixels
+               }
+           }*/
 
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
@@ -555,7 +555,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                     }
 
                     if (mEGLDisplay != null) {
-                      //  EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT)
+                        //  EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, if (preserveEGLContextOnPause) mEGLContext else EGL14.EGL_NO_CONTEXT)
                         EGL14.eglMakeCurrent(mEGLDisplay, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, mEGLContext)
 
                         Log.d(TAG, "run InterruptedException: ${mEGLContext.hashCode()}")
@@ -568,7 +568,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                             EGL14.eglDestroySurface(mEGLDisplay, mEGLSurfaceMedia)
                         }
                         if (!preserveEGLContextOnPause) {
-                           // EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)
+                            // EGL14.eglDestroyContext(mEGLDisplay, mEGLContext)
                             mHasGLContext.set(true)
                         }
 
