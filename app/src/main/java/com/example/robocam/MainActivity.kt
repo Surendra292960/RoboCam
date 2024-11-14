@@ -74,8 +74,8 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
-        mView = layout.findViewById<LinearLayout>(R.id.root)
+      /*  val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
+        mView = layout.findViewById<LinearLayout>(R.id.root)*/
 
         mainHandler = Handler(Looper.getMainLooper())
 

@@ -29,7 +29,6 @@ class ImageSquare(context: Context) {
     private var vertexShader = 0
     private var fragmentShader = 0
 
-
     private val vertexShaderSource = """
         attribute vec4 position;
         attribute vec2 texCoord;

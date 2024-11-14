@@ -5,49 +5,63 @@
     android:id="@+id/root"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@color/purple_200"
-    android:layout_gravity="center"
+    android:background="@color/white"
     android:orientation="vertical"
+    android:layout_margin="20dp"
     tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Rename Your User Profile (Optional):"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialog_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text=" Are you encountering the Selected directory is not a valid home for Android SDK error "
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" Rename Your User Profile (Optional):"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text=" Are you encountering the Selected directory is not a valid home for Android SDK error "
+        android:textSize="16sp" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_margin="10dp">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/teal_200"
+        android:weightSum="2"
+        android:orientation="horizontal">
 
-        <TextView
+        <Button
+            android:id="@+id/negative_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:text="Hello Inspection Botz"
-            android:textSize="20sp"/>
+            android:layout_weight="1"
+            android:text="NEGATIVE"
+            tools:ignore="ButtonStyle" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:text="Yes"
-                android:gravity="start"
-                android:layout_weight="1"
-                android:textSize="20sp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:text="No"
-                android:gravity="end"
-                android:layout_weight="1"
-                android:textSize="20sp"/>
-        </LinearLayout>
+        <Button
+            android:id="@+id/positive_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:text="POSITIVE" />
     </LinearLayout>
-
-
 </LinearLayout>

@@ -41,12 +41,12 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(unused: GL10?) {
-      //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
+        //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
         // Draw triangle
         mTriangle?.draw()
         // Draw square
-       // mSquare?.draw()
+        // mSquare?.draw()
 
 
         if (isSave){
@@ -57,7 +57,7 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         }
 
         if (dialogBitmap != null) {
-           // mSquare?.renderBitmap(bitmap = dialogBitmap!!)
+            // mSquare?.renderBitmap(bitmap = dialogBitmap!!)
             mTriangle?.setupDialogTexture(bitmap = dialogBitmap!!)
         }
 
@@ -74,7 +74,7 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
             mTriangle?.result = true
             // Capture the dialog's view into a bitmap
             dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
             dialogView.layout(0, 0, dialogView.measuredWidth, dialogView.measuredHeight)
             dialogBitmap = Bitmap.createBitmap(dialogView.measuredWidth, dialogView.measuredHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(dialogBitmap!!)
@@ -126,7 +126,7 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         bitmap.copyPixelsFromBuffer(pixelBuffer)
 
         // Flip the bitmap vertically since OpenGL's origin is at the bottom-left
-       // Matrix.flip(bitmap, true)
+        // Matrix.flip(bitmap, true)
 
         // Save the bitmap to a file
         saveBitmap(bitmap)
