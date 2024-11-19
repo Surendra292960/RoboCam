@@ -52,7 +52,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 
-var job: Job? = null
+var jobWheel: Job? = null
 var innerCircleColor:Color = Color.Gray
 
 var distance:Float = 0f
@@ -128,33 +128,20 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
                 }
 
                 // Calculate normalized coordinates
-                val normalizedCoordinates = calculateNormalizedCoordinates(
-                    joystickOffset,
-                    center,
-                    circleRadius - joystickRadius
-                )
+                val normalizedCoordinates = calculateNormalizedCoordinates(joystickOffset, center, circleRadius - joystickRadius)
 
                 if (isDragging) {
-                    job = CoroutineScope(IO).launch {
-                        Log.d("TAG", "JoyStickController Job start  : ${job!!.isActive}")
-                        while (job!!.isActive) {
+                    jobWheel = CoroutineScope(IO).launch {
+                        Log.d("TAG", "JoyStickController Job start  : ${jobWheel?.isActive}")
+                        while (jobWheel?.isActive == true) {
                             delay(10)
-                            if (job!!.isActive) {
-                                coordinates = Offset(
-                                    normalizedCoordinates.first,
-                                    normalizedCoordinates.second
-                                )
-                                onCoordinatesChange(
-                                    coordinates.x,
-                                    coordinates.y
-                                )  // Invoke the callback
+                            if (jobWheel!!.isActive) {
+                                coordinates = Offset(normalizedCoordinates.first, normalizedCoordinates.second)
+                                onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
                                 Log.d("TAG", "JoyStickController Job started alone if : ")
                             } else {
                                 coordinates = Offset(0f, 0f)
-                                onCoordinatesChange(
-                                    coordinates.x,
-                                    coordinates.y
-                                )  // Invoke the callback
+                                onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
                                 Log.d("TAG", "JoyStickController Job started alone  else : ")
                             }
                         }
@@ -227,6 +214,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
         )
 
         // Display coordinates
+        Log.d("TAG", "JoystickHandler Wheels: X = ${coordinates.x}, Y = ${coordinates.y}")
         Text(
             text = "X = ${coordinates.x}, Y = ${coordinates.y}",
             modifier = Modifier
@@ -258,8 +246,8 @@ private fun Offset.getDistance(): Float {
 fun cancelJob() {
     CoroutineScope(IO).launch {
         innerCircleColor = Color.Gray
-        job!!.cancelAndJoin()
-        Log.d("TAG", "JoyStickController isActive Job : ${job!!.isActive}")
+        jobWheel?.cancelAndJoin()
+        Log.d("TAG", "JoyStickController isActive Job : ${jobWheel?.isActive}")
     }
 }
 

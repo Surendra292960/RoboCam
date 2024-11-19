@@ -1,6 +1,5 @@
 package com.example.robocam
 import android.Manifest
-import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -12,13 +11,11 @@ import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
-import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -27,6 +24,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
@@ -44,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.robocam.joystick.CameraController
 import com.example.robocam.joystick.JoyStick
 import com.example.robocam.joystick.JoyStickController
 import com.example.robocam.opengl.Permissions
@@ -82,10 +81,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
-                      /* Box(modifier = Modifier.fillMaxSize(),
+                       Box(modifier = Modifier.fillMaxSize(),
                            contentAlignment = Alignment.Center){
                            JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-                       }*/
+                       }
                 }
             }
         }
@@ -204,14 +203,6 @@ fun OpenGLScreen() {
     }
 }
 
-private fun showDialog(context: Context) {
-    AlertDialog.Builder(context)
-        .setTitle("Dialog Title")
-        .setMessage("This is a dialog message.")
-        .setPositiveButton(android.R.string.ok, null)
-        .show()
-}
-
 fun getData(context: Context) {
     mGLView?.resume()
     try {
@@ -282,19 +273,27 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
     ) {
         var joystickCoordinates by remember { mutableStateOf("X: 0, Y: 0") }
 
-        JoyStickController() { x, y ->
-            // joystickCoordinates = coordinates // Update the coordinates in the parent
-            Log.d("TAG", "JetStickUI ONE: $x, $y")
-        }
+       Row (modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
+           verticalAlignment = Alignment.CenterVertically){
+           JoyStickController() { x, y ->
+               // joystickCoordinates = coordinates // Update the coordinates in the parent
+               Log.d("TAG", "JetStickUI ONE: $x, $y")
+           }
 
-           JoyStick(
-               Modifier.padding(30.dp),
-               size = 150.dp,
-               dotSize = 70.dp,
-           ) { x: Float, y: Float ->
-               viewModel.setCoordinates(x,y)
+           CameraController { x, y ->
+               // joystickCoordinates = coordinates // Update the coordinates in the parent
                Log.d("TAG", "JetStickUI Camera: $x, $y")
            }
+
+            /*JoyStick(
+             Modifier.padding(30.dp),
+             size = 150.dp,
+             dotSize = 70.dp,
+         ) { x: Float, y: Float ->
+             viewModel.setCoordinates(x,y)
+             Log.d("TAG", "JetStickUI Camera: $x, $y")
+         }*/
+       }
     }
 }
 
