@@ -68,7 +68,7 @@ class ImageSquare(context: Context) {
         0.0f, 0.0f,
     )
 
-    /**
+    /*
      * Sets up the drawing object data for use in an OpenGL ES context.
      */
     init {

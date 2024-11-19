@@ -4,12 +4,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Environment
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.TextView
 import com.example.robocam.MainActivity
 import com.example.robocam.R
 import java.io.File
@@ -64,21 +66,34 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
     }
 
     private fun showDialog() {
-        cancelDialog()
+       // cancelDialog()
         // Inflate and show the dialog
-        (context as MainActivity).getMainHandler().post{
+        (context as MainActivity).getMainHandler().post {
             dialogView = LayoutInflater.from(context).inflate(R.layout.image, null)
-            dialog = AlertDialog.Builder(context).setView(dialogView).create()
-            dialog?.show()
+            val dialogText = dialogView.findViewById<TextView>(R.id.dialog_title)
+
             cancelDialog()
             mTriangle?.result = true
             // Capture the dialog's view into a bitmap
-            dialogView.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+            dialogText.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-            dialogView.layout(0, 0, dialogView.measuredWidth, dialogView.measuredHeight)
-            dialogBitmap = Bitmap.createBitmap(dialogView.measuredWidth, dialogView.measuredHeight, Bitmap.Config.ARGB_8888)
+            dialogText.layout(0, 0, dialogText.measuredWidth, dialogText.measuredHeight)
+            dialogBitmap = Bitmap.createBitmap(dialogText.measuredWidth, dialogText.measuredHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(dialogBitmap!!)
-            dialogView.draw(canvas)
+            dialogText.draw(canvas)
+/*
+            // Scale the bitmap down
+            val scaleFactor = 0.5f // Adjust this factor to control text size
+            val scaledWidth = (dialogBitmap!!.width * scaleFactor).toInt()
+            val scaledHeight = (dialogBitmap!!.height * scaleFactor).toInt()
+            dialogBitmap = Bitmap.createScaledBitmap(dialogBitmap!!, scaledWidth, scaledHeight, true)
+
+            // Clean up original bitmap to save memory
+           // dialogBitmap!!.recycle()
+
+            // Pass dimensions of scaled bitmap to Triangle
+            mTriangle?.setDialogDimensions(scaledWidth, scaledHeight)*/
+
         }
     }
 
