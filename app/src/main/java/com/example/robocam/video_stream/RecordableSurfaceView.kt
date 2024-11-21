@@ -551,7 +551,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
                     sleep((1f / 60f * 1000f).toLong())
                 } catch (e: InterruptedException) {
                     if (mRendererCallbacksWeakReference != null && mRendererCallbacksWeakReference!!.get() != null) {
-                        mRendererCallbacksWeakReference!!.get()!!.onSurfaceDestroyed()
+                        mRendererCallbacksWeakReference?.get()?.onSurfaceDestroyed()
                     }
 
                     if (mEGLDisplay != null) {

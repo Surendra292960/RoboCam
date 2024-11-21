@@ -58,17 +58,19 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
             isSave = false
         }
 
-        if (dialogBitmap != null) {
+       /* if (dialogBitmap != null) {
             // mSquare?.renderBitmap(bitmap = dialogBitmap!!)
             mTriangle?.setupDialogTexture(bitmap = dialogBitmap!!)
-        }
+        }*/
+
+        mTriangle?.setupDialogTexture(/*bitmap = dialogBitmap!!*/)
 
     }
 
     private fun showDialog() {
        // cancelDialog()
         // Inflate and show the dialog
-        (context as MainActivity).getMainHandler().post {
+        /*        (context as MainActivity).getMainHandler().post {
             dialogView = LayoutInflater.from(context).inflate(R.layout.image, null)
             val dialogText = dialogView.findViewById<TextView>(R.id.dialog_title)
 
@@ -81,27 +83,14 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
             dialogBitmap = Bitmap.createBitmap(dialogText.measuredWidth, dialogText.measuredHeight, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(dialogBitmap!!)
             dialogText.draw(canvas)
-/*
-            // Scale the bitmap down
-            val scaleFactor = 0.5f // Adjust this factor to control text size
-            val scaledWidth = (dialogBitmap!!.width * scaleFactor).toInt()
-            val scaledHeight = (dialogBitmap!!.height * scaleFactor).toInt()
-            dialogBitmap = Bitmap.createScaledBitmap(dialogBitmap!!, scaledWidth, scaledHeight, true)
 
-            // Clean up original bitmap to save memory
-           // dialogBitmap!!.recycle()
-
-            // Pass dimensions of scaled bitmap to Triangle
-            mTriangle?.setDialogDimensions(scaledWidth, scaledHeight)*/
-
-        }
+        }*/
+        cancelDialog()
+        mTriangle?.result = true
     }
 
     private fun cancelDialog(){
-        if (dialog!=null){
-            mTriangle?.result = false
-            dialog?.hide()
-        }
+        mTriangle?.result = false
     }
 
     override fun onSurfaceChanged(unused: GL10?, width: Int, height: Int) {

@@ -114,7 +114,7 @@ class Triangle(val context: Context) {
         dialogVertexBuffer = setupBuffer(dialogVerticesCoords)
         dialogTexCoordBuffer = setupBuffer(dialogTextureCoords)
     }
-    fun setupDialogTexture(bitmap: Bitmap){
+    fun setupDialogTexture(/*bitmap: Bitmap?*/){
        // dialogTextureID = setupTextureDialog(bitmap)
         //dialogTextureID = TextureHelper.loadText(context, "01234");
         dialogTextureID = TextureHelper.loadText(context, "Robot Camera", ("""
@@ -237,6 +237,37 @@ class Triangle(val context: Context) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, dialogTextureID)
         GLES20.glUniform1i(textureSamplerLocation, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
+    }
+
+    fun cleanup() {
+        // Delete vertex buffer
+        if (vertexBuffer != 0) {
+            GLES20.glDeleteBuffers(1, intArrayOf(vertexBuffer), 0)
+        }
+
+        // Delete texture coordinate buffer
+        if (texCoordBuffer != 0) {
+            GLES20.glDeleteBuffers(1, intArrayOf(texCoordBuffer), 0)
+        }
+
+        // Delete dialog vertex buffer
+        if (dialogVertexBuffer != 0) {
+            GLES20.glDeleteBuffers(1, intArrayOf(dialogVertexBuffer), 0)
+        }
+
+        // Delete dialog texture coordinate buffer
+        if (dialogTexCoordBuffer != 0) {
+            GLES20.glDeleteBuffers(1, intArrayOf(dialogTexCoordBuffer), 0)
+        }
+
+        // Delete textures
+        if (textureID != 0) {
+            GLES20.glDeleteTextures(1, intArrayOf(textureID), 0)
+        }
+
+        if (dialogTextureID != 0) {
+            GLES20.glDeleteTextures(1, intArrayOf(dialogTextureID), 0)
+        }
     }
 
     private fun checkGLError(tag: String) {
