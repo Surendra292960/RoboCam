@@ -63,6 +63,8 @@ fun CameraController(coordinatesChange: (x: Float, y: Float) -> Unit = { _, _ ->
     val circleRadius = 180f
     val joystickRadius = 70f // Radius of the joystick itself
     val coroutineScope = rememberCoroutineScope()
+    var stableState by remember { mutableStateOf(false) }
+
 
     Box(
         modifier = Modifier
@@ -73,7 +75,8 @@ fun CameraController(coordinatesChange: (x: Float, y: Float) -> Unit = { _, _ ->
                     onDragEnd = {
                         cancelCameraJob()
                         isDragging = false
-                        isFingerMoving = false // Reset on end
+                        stableState = true
+                        isFingerMoving = false
                         joystickOffset = center
                         coordinates = Offset(0f, 0f)
                         coordinatesChange(coordinates.x, coordinates.y) // Reset coordinates
@@ -81,13 +84,14 @@ fun CameraController(coordinatesChange: (x: Float, y: Float) -> Unit = { _, _ ->
                     onDragCancel = {
                         cancelCameraJob()
                         isDragging = false
-                        isFingerMoving = false // Reset on cancel
+                        stableState = true
+                        isFingerMoving = false
                         joystickOffset = center
                         coordinates = Offset(0f, 0f)
                         coordinatesChange(coordinates.x, coordinates.y) // Reset coordinates
                     }
                 ) { change, dragAmount ->
-                   /// isDragging = true
+                    /// isDragging = true
                     change.consume()
                     val newOffset = joystickOffset + dragAmount
 
@@ -95,16 +99,17 @@ fun CameraController(coordinatesChange: (x: Float, y: Float) -> Unit = { _, _ ->
                     val distanceFromLastDrag = lastDragPosition.distance(newOffset)
                     if (distanceFromLastDrag > 5f) { // Finger moving threshold
                         if (!isFingerMoving) {
+                            stableState = false
                             Log.d("CameraController", "Finger started moving!")
                         }
                         isFingerMoving = true
                     } else {
                         if (isFingerMoving) {
                             coroutineScope.launch {
-                                delay(50)
+                                stableState = true
                                 cancelCameraJob()
-                             /*   coordinates = Offset(0.0f, 0.0f)
-                                coordinatesChange(coordinates.x, coordinates.y)*/
+                                coordinates = Offset(0f, 0f)
+                                coordinatesChange(coordinates.x, coordinates.y)
                                 Log.d("CameraController", "Finger stopped moving!")
                             }
                         }
@@ -136,7 +141,7 @@ fun CameraController(coordinatesChange: (x: Float, y: Float) -> Unit = { _, _ ->
                                 }
                             }
                         }
-                    }else{
+                    }else if(stableState){
                         cancelCameraJob()
                         coordinates = Offset(0f, 0f)
                         coordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback

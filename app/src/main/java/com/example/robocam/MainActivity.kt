@@ -1,4 +1,5 @@
 package com.example.robocam
+import DraggableDPad
 import android.Manifest
 import android.content.ContentValues
 import android.content.Context
@@ -275,15 +276,24 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
 
        Row (modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
            verticalAlignment = Alignment.CenterVertically){
-           JoyStickController() { x, y ->
+           JoyStickController(modifier= Modifier.weight(0.45f)) { x, y ->
                // joystickCoordinates = coordinates // Update the coordinates in the parent
                Log.d("TAG", "JetStickUI ONE: $x, $y")
            }
 
-           CameraController { x, y ->
+          /* CameraController { x, y ->
                // joystickCoordinates = coordinates // Update the coordinates in the parent
                Log.d("TAG", "JetStickUI Camera: $x, $y")
-           }
+           }*/
+
+           DraggableDPad(modifier= Modifier.weight(0.45f) , size = 200.dp,
+               onInput = { x, y ->
+                  /* velocity = newVelocity
+                   angle = newAngle*/
+
+                   Log.d("TAG", "JetStickUI: $x   $y")
+               }
+           )
 
             /*JoyStick(
              Modifier.padding(30.dp),

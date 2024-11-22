@@ -64,7 +64,7 @@ fun JoyStickControllerUIPreview(){
 }
 
 @Composable
-fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
+fun JoyStickController(modifier: Modifier=Modifier, onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
     var coordinates by remember { mutableStateOf(Offset(0f,0f)) }
     var joystickOffset by remember { mutableStateOf(Offset(150f, 150f)) } // Start at center
     // Maybe store this in a static field?
@@ -83,7 +83,7 @@ fun JoyStickController(onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, 
     val painter = rememberVectorPainter(image = Icons.Default.Add)
     val tint = remember { ColorFilter.tint(Color.Red) }
 
-    Box(modifier = Modifier
+    Box(modifier = modifier
         .size(300.dp)
         .background(Color.Transparent)
         .pointerInput(Unit) {
