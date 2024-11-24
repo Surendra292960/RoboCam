@@ -1,4 +1,4 @@
-package com.example.robocam.opengl.camer_rendering
+package com.example.robocam.video_stream.camer_rendering
 import android.graphics.Bitmap
 import android.opengl.GLES20
 import android.opengl.GLUtils

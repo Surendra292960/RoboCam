@@ -23,14 +23,11 @@ import javax.microedition.khronos.opengles.GL10
 
 
 class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
-    private var dialog: AlertDialog?=null
     private var mTriangle: Triangle? = null
     private var mSquare: ImageSquare? = null
     private var mWidth = 0
     private var mHeight = 0
     var isSave = false
-    private lateinit var dialogView: View
-    private var dialogBitmap: Bitmap? = null
 
     override fun onSurfaceCreated(unused: GL10?, config: EGLConfig?) {
         // Set the background frame color
@@ -38,59 +35,25 @@ class MyGLRenderer(val context: Context) : GLSurfaceView.Renderer {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
         GLES20.glEnable(GLES20.GL_DEPTH_TEST)
 
-        mTriangle = Triangle(context)
-        //mSquare = ImageSquare(context = context)
+        //mTriangle = Triangle(context)
+        mSquare = ImageSquare(context = context)
     }
 
     override fun onDrawFrame(unused: GL10?) {
-        //  GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-
         // Draw triangle
-        mTriangle?.draw()
+       // mTriangle?.draw()
         // Draw square
-        // mSquare?.draw()
+         mSquare?.draw()
 
 
-        if (isSave){
+  /*      if (isSave){
             Log.d("TAG", "onDrawFrame: showDialog")
             // takeScreenshot()
-            showDialog()
+            mTriangle?.result = false
             isSave = false
         }
+        mTriangle?.setupDialogTexture(*//*bitmap = dialogBitmap!!*//*)*/
 
-       /* if (dialogBitmap != null) {
-            // mSquare?.renderBitmap(bitmap = dialogBitmap!!)
-            mTriangle?.setupDialogTexture(bitmap = dialogBitmap!!)
-        }*/
-
-        mTriangle?.setupDialogTexture(/*bitmap = dialogBitmap!!*/)
-
-    }
-
-    private fun showDialog() {
-       // cancelDialog()
-        // Inflate and show the dialog
-        /*        (context as MainActivity).getMainHandler().post {
-            dialogView = LayoutInflater.from(context).inflate(R.layout.image, null)
-            val dialogText = dialogView.findViewById<TextView>(R.id.dialog_title)
-
-            cancelDialog()
-            mTriangle?.result = true
-            // Capture the dialog's view into a bitmap
-            dialogText.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-            dialogText.layout(0, 0, dialogText.measuredWidth, dialogText.measuredHeight)
-            dialogBitmap = Bitmap.createBitmap(dialogText.measuredWidth, dialogText.measuredHeight, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(dialogBitmap!!)
-            dialogText.draw(canvas)
-
-        }*/
-        cancelDialog()
-        mTriangle?.result = true
-    }
-
-    private fun cancelDialog(){
-        mTriangle?.result = false
     }
 
     override fun onSurfaceChanged(unused: GL10?, width: Int, height: Int) {

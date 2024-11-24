@@ -6,16 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,16 +25,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,27 +58,19 @@ fun JoyStickControllerUIPreview(){
 }
 
 @Composable
-fun JoyStickController(modifier: Modifier=Modifier, onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
+fun JoyStickController(
+    modifier: Modifier=Modifier,
+    onCoordinatesChange: (x: Float, y: Float) -> Unit = { _, _ -> }) {
     var coordinates by remember { mutableStateOf(Offset(0f,0f)) }
     var joystickOffset by remember { mutableStateOf(Offset(150f, 150f)) } // Start at center
-    // Maybe store this in a static field?
-    val SCALE: Float = LocalContext.current.resources.displayMetrics.density
-    // Convert dips to pixels
-    val circleRadiusDips =80f
-    //val circleRadius = (circleRadiusDips * SCALE + 0.5f) // 0.5f for rounding
     val circleRadius = 180f
-    // Convert dips to pixels
-    val joystickRadiusDips =30f
-   // val joystickRadius = (joystickRadiusDips * SCALE + 0.5f) // 0.5f for rounding
     val joystickRadius = 70f // Radius of the joystick itself
     val center = Offset(150f, 150f)
-    val haptic = LocalHapticFeedback.current
     var isDragging by remember { mutableStateOf(false) }
-    val painter = rememberVectorPainter(image = Icons.Default.Add)
-    val tint = remember { ColorFilter.tint(Color.Red) }
 
     Box(modifier = modifier
-        .size(300.dp)
+        .fillMaxHeight()
+        .fillMaxWidth(0.45f)
         .background(Color.Transparent)
         .pointerInput(Unit) {
             detectDragGestures(
@@ -129,7 +115,9 @@ fun JoyStickController(modifier: Modifier=Modifier, onCoordinatesChange: (x: Flo
 
                 // Calculate normalized coordinates
                 val normalizedCoordinates = calculateNormalizedCoordinates(joystickOffset, center, circleRadius - joystickRadius)
-
+                coordinates = Offset(normalizedCoordinates.first, normalizedCoordinates.second)
+                onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
+/*
                 if (isDragging) {
                     jobWheel = CoroutineScope(IO).launch {
                         Log.d("TAG", "JoyStickController Job start  : ${jobWheel?.isActive}")
@@ -146,7 +134,7 @@ fun JoyStickController(modifier: Modifier=Modifier, onCoordinatesChange: (x: Flo
                             }
                         }
                     }
-                }
+                }*/
             }
         }) {
 
@@ -220,7 +208,7 @@ fun JoyStickController(modifier: Modifier=Modifier, onCoordinatesChange: (x: Flo
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(16.dp),
-            color = Color.Black,
+            color = Color.White,
             fontSize = 16.sp
         )
     }

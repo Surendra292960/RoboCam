@@ -14,7 +14,6 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
-
 class JoystickView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
@@ -38,15 +37,22 @@ class JoystickView @JvmOverloads constructor(
     private var movementHandler: Handler = Handler()
     private var isMoving = false
     private var movementRunnable: Runnable? = null
+    private var normalizedX = 0.0f
+    private var normalizedY = 0.0f
 
     init {
         setBackgroundColor(Color.BLACK)
     }
 
+    private fun getJoystickCoordinates() {
+        Pair(normalizedX, normalizedY)
+        Log.d("TAG", "startContinuousMovement: Moving: dx: $normalizedX, dy: $normalizedY")
+    }
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         centerPoint.set(w / 2f, h / 2f)
-        radius = Math.min(w, h) / 3f
+        radius = w.coerceAtMost(h) / 3f
         stickPoint.set(centerPoint)
     }
 
@@ -106,15 +112,12 @@ class JoystickView @JvmOverloads constructor(
         isMoving = true
         movementRunnable = object : Runnable {
             override fun run() {
-                // Perform movement logic here
-                // Example: Log.d("Joystick", "Moving: dx: $dx, dy: $dy")
+                normalizedX = dx
+                normalizedY = dy
 
-                // Log.d("TAG", "startContinuousMovement: Moving: dx: $dx, dy: $dy")
-                getStickPosition().also {
-                    Log.d("TAG", "startContinuousMovement:Joystick ${it.first} ${it.second}")
-                }
-
-                movementHandler.postDelayed(this, 100) // Adjust the delay as needed
+               // Log.d("TAG", "startContinuousMovement: Moving: dx: $normalizedX, dy: $normalizedY")
+                getJoystickCoordinates()
+                movementHandler.postDelayed(this, 10) // Adjust the delay as needed
             }
         }
         movementHandler.post(movementRunnable!!)
@@ -127,10 +130,5 @@ class JoystickView @JvmOverloads constructor(
         }
         Log.d("TAG", "stopContinuousMovement: ")
     }
-
-    fun getStickPosition(): Pair<Float, Float> {
-        val normalizedX = (stickPoint.x - centerPoint.x) / radius
-        val normalizedY = (stickPoint.y - centerPoint.y) / radius
-        return Pair(normalizedX, normalizedY) // Between -1 and 1
-    }
 }
+

@@ -1,26 +1,20 @@
 package com.example.robocam
-import DraggableDPad
-import android.Manifest
+import Utility.getScreenSize
 import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.graphics.Point
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
-import android.view.WindowInsets
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,64 +22,52 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.example.robocam.joystick.CameraController
-import com.example.robocam.joystick.JoyStick
 import com.example.robocam.joystick.JoyStickController
-import com.example.robocam.opengl.Permissions
+import com.example.robocam.joystick.d_pad.JoystickDPad
 import com.example.robocam.video_stream.MyGLSurfaceView
-import com.example.robocam.video_stream.PermissionsHelper
 import com.example.robocam.video_stream.RecordableSurfaceView
-import java.io.File
-import java.io.IOException
-import java.util.Date
-
 
 var mView: View? = null
 private var mGLView: RecordableSurfaceView? = null
 private var mMyGLView: MyGLSurfaceView? = null
-private var mOutputFile: File? = null
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
-    private var mIsRecording = false
-
-    private lateinit var mainHandler: Handler
-
-
-    fun getMainHandler(): Handler {
-        return mainHandler
-    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-      /*  val layout = LayoutInflater.from(this).inflate(R.layout.image, null, false)
-        mView = layout.findViewById<LinearLayout>(R.id.root)*/
-
-        mainHandler = Handler(Looper.getMainLooper())
 
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
-                       Box(modifier = Modifier.fillMaxSize(),
-                           contentAlignment = Alignment.Center){
-                           JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
-                       }
+                    Box(modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center){
+                        JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
+                    }
                 }
             }
         }
@@ -98,83 +80,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (PermissionsHelper.hasPermissions(this)) {
-            // Note that order matters - see the note in onPause(), the reverse applies here.
-            mGLView?.resume()
-            try {
-                mOutputFile = createVideoOutputFile(this)
-                val size = getScreenSize(this)
-                mGLView?.initRecorder(mOutputFile!!, size.x, size.y, null, null)
-            } catch (ioex: IOException) {
-                Log.e(ContentValues.TAG, "Couldn't re-init recording", ioex)
-            }
-        } else {
-            PermissionsHelper.requestPermissions(this)
-        }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
-        return true
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        mGLView!!.resume()
-        try {
-            mOutputFile = createVideoOutputFile(this)
-            val size = getScreenSize(this)
-            mGLView!!.initRecorder(mOutputFile!!, size.x, size.y, null, null)
-        } catch (ioex: IOException) {
-            Log.e(ContentValues.TAG, "Couldn't re-init recording", ioex)
-        }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (mIsRecording) {
-            mGLView!!.stopRecording()
-
-         /*   val contentUri = FileProvider.getUriForFile(this, "com.example.robocam.fileprovider", mOutputFile!!)
-
-            share(contentUri)*/
-            mIsRecording = false
-            mOutputFile = createVideoOutputFile(this)
-
-            try {
-                val screenWidth = mGLView!!.width
-                val screenHeight = mGLView!!.height
-                mGLView!!.initRecorder(mOutputFile!!, screenWidth, screenHeight, null, null)
-            } catch (ioex: IOException) {
-                Log.e(ContentValues.TAG, "Couldn't re-init recording", ioex)
-            }
-            item.setTitle("Record")
-        } else {
-            checkPermission()
-            mGLView!!.startRecording()
-            Log.v(ContentValues.TAG, "Recording Started")
-
-            item.setTitle("Stop")
-            mIsRecording = true
-        }
-        return true
-    }
-
-    private fun share(contentUri: Uri) {
-        val shareIntent = Intent()
-        shareIntent.setAction(Intent.ACTION_SEND)
-        shareIntent.setType("video/mp4")
-        shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri)
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        startActivity(Intent.createChooser(shareIntent, "Share with"))
-    }
-
-    private fun checkPermission(){
-        val permissions = Permissions(this,
-            arrayListOf(Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO
-            ),
-            23)
-        permissions.checkPermissions()
+        mGLView?.resume()
     }
 }
 
@@ -186,124 +92,133 @@ fun OpenGLScreen() {
         AndroidView(
             factory = {
                 mView.let {
-                   MyGLSurfaceView(context).also { glView ->
-                       mMyGLView = glView
-                       mGLView = glView // Store reference to mGLView
-                   }
-               }
+                    MyGLSurfaceView(context).also { glView ->
+                        mMyGLView = glView
+                        mGLView = glView // Store reference to mGLView
+                    }
+                }
+
+                //JoystickView(context)
             },
             update = { view->
                 mView = view
-                getData(context)
+                mGLView?.resume()
             }
         )
 
-        Text(modifier = Modifier.clickable {
-            mMyGLView?.mRenderer?.isSave = true
-        }, text = "Hello", color = Color.White, fontSize = 34.sp)
+        DisplayIcons(context)
     }
 }
 
-fun getData(context: Context) {
+@Composable
+fun DisplayIcons(context: Context) {
+    var isRecording by remember { mutableStateOf(false) }
+    val infiniteTransition = rememberInfiniteTransition(label = "")
+
+    val flashAnimation by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500),
+            repeatMode = RepeatMode.Reverse
+        ), label = ""
+    )
+
+    Box(modifier = Modifier.padding(10.dp).fillMaxSize()){
+        Text(
+            modifier = Modifier.clickable {
+                mMyGLView?.mRenderer?.isSave = true
+            },
+            text = "Show Dialog",
+            color = Color.Cyan, fontSize = 15.sp, fontWeight = FontWeight.Bold
+        )
+
+        if (!isRecording){
+            Icon(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable {
+                        //startRecording(context)
+                        isRecording = true
+                    }
+                    .align(Alignment.BottomStart),
+                painter = painterResource(R.drawable.recording),
+                contentDescription = "start recording",
+                tint = Color.Cyan
+            )
+        }else{
+            Icon(
+                modifier = Modifier
+                    .size(30.dp)
+                    .scale(flashAnimation)
+                    .clickable {
+                       // stopRecording()
+                        isRecording = false
+                    }
+                    .align(Alignment.BottomStart),
+                painter = painterResource(R.drawable.recording),
+                contentDescription = "stop recording",
+                tint = Color.Red
+            )
+        }
+    }
+}
+
+fun startRecording(context: Context) {
     mGLView?.resume()
     try {
-        mOutputFile = createVideoOutputFile(context)
         val size = getScreenSize(context)
-        mGLView?.initRecorder(mOutputFile!!, size.x, size.y, null, null)
-    } catch (ioex: IOException) {
-        Log.e(ContentValues.TAG, "Couldn't re-init recording", ioex)
+        mGLView?.initRecorder(size.x, size.y, 0, null, null)
+        mGLView!!.startRecording()
+        Log.d("TAG", "Recording Started ")
+    } catch (e: Exception) {
+        Log.d("TAG", "Recording Start Exception : ${e.message}")
     }
 }
 
-private fun getScreenSize(context: Context): Point {
-    val size: Point?
-    val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        val metrics = windowManager.currentWindowMetrics
-        // Gets all excluding insets
-        val windowInsets = metrics.windowInsets
-        val insets = windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
-
-        val insetsWidth = insets.right + insets.left
-        val insetsHeight = insets.top + insets.bottom
-
-        // Legacy size that Display#getSize reports
-        val bounds = metrics.bounds
-        size = Point(
-            bounds.width() - insetsWidth,
-            bounds.height() - insetsHeight
-        )
-    } else {
-        size = Point()
-        windowManager.defaultDisplay.getRealSize(size)
-    }
-
-    return size
-}
-
-
-private fun createVideoOutputFile(context: Context): File? {
-    var tempFile: File? = null
-    val filename = Date().time.toString() + ""
-    var filesDir = ""
-
+fun stopRecording(){
     try {
-        filesDir =  Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).path.toString()
-
-        val dirCheck = File("$filesDir/captures")
-
-        if (!dirCheck.exists()) {
-            dirCheck.mkdirs()
-        }
-
-        tempFile = File("$filesDir/captures/$filename.mp4")
-    } catch (ioex: IOException) {
-        Log.e(ContentValues.TAG, "Couldn't create output file", ioex)
+        mGLView!!.stopRecording()
+        Log.d(ContentValues.TAG, "Recording Stopped")
+    }catch (e:Exception){
+        Log.d("TAG", "Recording Stopped Exception : ${e.message}")
     }
-
-    return tempFile
 }
+
+
 
 @Preview
 @Composable
 fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
+
+    // Observe the joystick data
+    val leftData by viewModel.leftJoystickData.collectAsState()
+    val rightData by viewModel.rightJoystickData.collectAsState()
+
+    // Combine the joystick data
+    LaunchedEffect(leftData, rightData) {
+        Log.d("LaunchedEffect", "Joystick Left : ${leftData.first}, ${leftData.second}")
+        Log.d("LaunchedEffect", "Joystick Right : ${rightData.first}, ${rightData.second}")
+    }
+
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var joystickCoordinates by remember { mutableStateOf("X: 0, Y: 0") }
 
-       Row (modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
-           verticalAlignment = Alignment.CenterVertically){
-           JoyStickController(modifier= Modifier.weight(0.45f)) { x, y ->
-               // joystickCoordinates = coordinates // Update the coordinates in the parent
-               Log.d("TAG", "JetStickUI ONE: $x, $y")
-           }
+        Row (modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically){
 
-          /* CameraController { x, y ->
-               // joystickCoordinates = coordinates // Update the coordinates in the parent
-               Log.d("TAG", "JetStickUI Camera: $x, $y")
-           }*/
+            JoyStickController(modifier = Modifier.padding(end = 10.dp, top = 35.dp, bottom = 45.dp).weight(0.45f)) { x, y ->
+                Log.d("TAG", "JetStickUI ONE: $x, $y")
+                viewModel.setLeftJoystickData(x, y)
+            }
 
-           DraggableDPad(modifier= Modifier.weight(0.45f) , size = 200.dp,
-               onInput = { x, y ->
-                  /* velocity = newVelocity
-                   angle = newAngle*/
-
-                   Log.d("TAG", "JetStickUI: $x   $y")
-               }
-           )
-
-            /*JoyStick(
-             Modifier.padding(30.dp),
-             size = 150.dp,
-             dotSize = 70.dp,
-         ) { x: Float, y: Float ->
-             viewModel.setCoordinates(x,y)
-             Log.d("TAG", "JetStickUI Camera: $x, $y")
-         }*/
-       }
+            JoystickDPad(modifier = Modifier.padding(start = 10.dp, top = 35.dp, bottom = 45.dp).weight(0.45f)) { newCoordinates ->
+                Log.d("TAG", "JetStickUI TWO: ${newCoordinates.x}, ${newCoordinates.y}")
+            }
+        }
     }
 }
 

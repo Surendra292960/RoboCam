@@ -1,9 +1,5 @@
 package com.example.robocam.video_stream
-import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.media.MediaCodec
 import android.media.MediaRecorder
 import android.opengl.EGL14
@@ -15,15 +11,11 @@ import android.opengl.EGLSurface
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.os.Build
+import android.os.Environment
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
-import android.view.View
-import android.view.ViewGroup
-import com.example.robocam.MainActivity
-import com.example.robocam.R
 import java.io.File
 import java.io.IOException
 import java.lang.ref.WeakReference
@@ -101,22 +93,6 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      * @see SurfaceHolder.Callback
      */
     private fun doSetup() {
-        /*   val activity: Activity = MainActivity()
-           if (activity != null) {
-               val inflater:LayoutInflater = LayoutInflater.from(context)
-               val view: View = inflater.inflate(R.layout.image, null)
-
-               val contentView: View = view.findViewById(android.R.id.content)
-               if (contentView != null) {
-                   mWidth = contentView.width
-                   mHeight = contentView.height
-               }
-               if (0 == mWidth || 0 == mHeight) {
-                   mWidth = activity.resources.displayMetrics.widthPixels
-                   mHeight = activity.resources.displayMetrics.heightPixels
-               }
-           }*/
-
         if (!mHasGLSurface.get()) {
             mSurface = MediaCodec.createPersistentInputSurface()
             mARRenderThread = ARRenderThread()
@@ -217,50 +193,12 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
      * @param infoListener  optional [MediaRecorder.OnInfoListener] for info callbacks
      * @see MediaRecorder
      */
-    @Throws(IOException::class)
-    fun initRecorder(
-        saveToFile: File, displayWidth: Int, displayHeight: Int,
-        errorListener: MediaRecorder.OnErrorListener?, infoListener: MediaRecorder.OnInfoListener?
-    ) {
-        initRecorder(
-            saveToFile, displayWidth, displayHeight, displayWidth, displayHeight, 0,
-            errorListener, infoListener
-        )
-    }
-
 
     @Throws(IOException::class)
-    fun initRecorder(
-        saveToFile: File, displayWidth: Int, displayHeight: Int,
-        orientationHint: Int, errorListener: MediaRecorder.OnErrorListener?,
-        infoListener: MediaRecorder.OnInfoListener?
-    ) {
-        initRecorder(
-            saveToFile, displayWidth, displayHeight, displayWidth, displayHeight,
-            orientationHint, errorListener, infoListener
-        )
-    }
+    fun initRecorder(desiredWidth: Int, desiredHeight: Int, orientationHint: Int, errorListener: MediaRecorder.OnErrorListener?, infoListener: MediaRecorder.OnInfoListener?) {
 
+        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).path.toString()
 
-    /**
-     * Iitializes the [MediaRecorder] ad relies on its lifecycle and requirements.
-     *
-     * @param saveToFile      the File object to record into. Assumes the calling program has
-     * permission to write to this file
-     * @param displayWidth    the Width of the display
-     * @param displayHeight   the Height of the display
-     * @param orientationHint the orientation to record the video (0, 90, 180, or 270)
-     * @param errorListener   optional [MediaRecorder.OnErrorListener] for recording state callbacks
-     * @param infoListener    optional [MediaRecorder.OnInfoListener] for info callbacks
-     * @see MediaRecorder
-     */
-    @Throws(IOException::class)
-    fun initRecorder(
-        saveToFile: File, displayWidth: Int, displayHeight: Int,
-        desiredWidth: Int, desiredHeight: Int, orientationHint: Int,
-        errorListener: MediaRecorder.OnErrorListener?,
-        infoListener: MediaRecorder.OnInfoListener?
-    ) {
         val mediaRecorder = MediaRecorder()
 
         mediaRecorder.setOnInfoListener(infoListener)
@@ -288,7 +226,7 @@ open class RecordableSurfaceView(context: Context) : SurfaceView(context) {
 
         mediaRecorder.setOrientationHint(orientationHint)
 
-        mediaRecorder.setOutputFile(saveToFile.path)
+        mediaRecorder.setOutputFile(directory + "/" + System.currentTimeMillis() + ".mp4")
 
         mediaRecorder.prepare()
 

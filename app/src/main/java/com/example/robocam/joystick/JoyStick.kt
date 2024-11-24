@@ -1,14 +1,18 @@
 package com.example.robocam.joystick
 
-import com.example.robocam.R
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,17 +23,21 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import kotlin.math.*
+import kotlin.math.atan
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 @Composable
 fun JoyStick(
     modifier: Modifier = Modifier,
-    size: Dp = 170.dp,
-    dotSize: Dp = 40.dp,
+    size: Dp = 130.dp,
+    dotSize: Dp = 50.dp,
     moved: (x: Float, y: Float) -> Unit = { _, _ -> }
 ) {
 
@@ -47,9 +55,9 @@ fun JoyStick(
     var positionY by remember { mutableFloatStateOf(0f) }
 
     Box(modifier = modifier
-        .size(400.dp)
-        .background(Color.White)
-
+        .fillMaxHeight()
+        .fillMaxWidth(0.45f)
+        .background(Color.Transparent)
         .pointerInput(Unit) {
             detectDragGestures(onDragEnd = {
                 offsetX = centerX

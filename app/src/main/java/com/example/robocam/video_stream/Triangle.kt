@@ -10,7 +10,6 @@ import java.nio.ByteOrder
 import java.nio.IntBuffer
 
 class Triangle(val context: Context) {
-    private var mTextureDataHandle: Int?=null
     var result = false
         set(value) {
             field = value
