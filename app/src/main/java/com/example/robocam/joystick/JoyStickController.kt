@@ -75,7 +75,6 @@ fun JoyStickController(
         .pointerInput(Unit) {
             detectDragGestures(
                 onDragEnd = {
-                    cancelJob()
                     distance = 0f
                     isDragging = false
                     joystickOffset = center
@@ -83,7 +82,6 @@ fun JoyStickController(
                     onCoordinatesChange(coordinates.x, coordinates.y)  // Reset coordinates
                 },
                 onDragCancel = {
-                    cancelJob()
                     distance = 0f
                     isDragging = false
                     joystickOffset = center
@@ -117,24 +115,6 @@ fun JoyStickController(
                 val normalizedCoordinates = calculateNormalizedCoordinates(joystickOffset, center, circleRadius - joystickRadius)
                 coordinates = Offset(normalizedCoordinates.first, normalizedCoordinates.second)
                 onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
-/*
-                if (isDragging) {
-                    jobWheel = CoroutineScope(IO).launch {
-                        Log.d("TAG", "JoyStickController Job start  : ${jobWheel?.isActive}")
-                        while (jobWheel?.isActive == true) {
-                            delay(10)
-                            if (jobWheel!!.isActive) {
-                                coordinates = Offset(normalizedCoordinates.first, normalizedCoordinates.second)
-                                onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
-                                Log.d("TAG", "JoyStickController Job started alone if : ")
-                            } else {
-                                coordinates = Offset(0f, 0f)
-                                onCoordinatesChange(coordinates.x, coordinates.y)  // Invoke the callback
-                                Log.d("TAG", "JoyStickController Job started alone  else : ")
-                            }
-                        }
-                    }
-                }*/
             }
         }) {
 
@@ -228,15 +208,6 @@ private fun Offset.clampLength(maxLength: Float): Offset {
 // Extension function to calculate the distance between two offsets
 private fun Offset.getDistance(): Float {
     return sqrt(x * x + y * y)
-}
-
-
-fun cancelJob() {
-    CoroutineScope(IO).launch {
-        innerCircleColor = Color.Gray
-        jobWheel?.cancelAndJoin()
-        Log.d("TAG", "JoyStickController isActive Job : ${jobWheel?.isActive}")
-    }
 }
 
 // Extension function to calculate distance between two offsets

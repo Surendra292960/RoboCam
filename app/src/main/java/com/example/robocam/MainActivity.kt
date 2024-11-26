@@ -1,4 +1,5 @@
 package com.example.robocam
+
 import Utility.getScreenSize
 import android.content.ContentValues
 import android.content.Context
@@ -27,8 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -64,8 +62,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
                 OpenGLScreen().also {
-                    Box(modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center){
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         JetStickUI(modifier = Modifier.align(Alignment.CenterStart), viewModel)
                     }
                 }
@@ -100,7 +100,7 @@ fun OpenGLScreen() {
 
                 //JoystickView(context)
             },
-            update = { view->
+            update = { view ->
                 mView = view
                 mGLView?.resume()
             }
@@ -124,7 +124,11 @@ fun DisplayIcons(context: Context) {
         ), label = ""
     )
 
-    Box(modifier = Modifier.padding(10.dp).fillMaxSize()){
+    Box(
+        modifier = Modifier
+            .padding(10.dp)
+            .fillMaxSize()
+    ) {
         Text(
             modifier = Modifier.clickable {
                 mMyGLView?.mRenderer?.isSave = true
@@ -133,7 +137,7 @@ fun DisplayIcons(context: Context) {
             color = Color.Cyan, fontSize = 15.sp, fontWeight = FontWeight.Bold
         )
 
-        if (!isRecording){
+        if (!isRecording) {
             Icon(
                 modifier = Modifier
                     .size(30.dp)
@@ -146,13 +150,13 @@ fun DisplayIcons(context: Context) {
                 contentDescription = "start recording",
                 tint = Color.Cyan
             )
-        }else{
+        } else {
             Icon(
                 modifier = Modifier
                     .size(30.dp)
                     .scale(flashAnimation)
                     .clickable {
-                       // stopRecording()
+                        // stopRecording()
                         isRecording = false
                     }
                     .align(Alignment.BottomStart),
@@ -176,30 +180,19 @@ fun startRecording(context: Context) {
     }
 }
 
-fun stopRecording(){
+fun stopRecording() {
     try {
         mGLView!!.stopRecording()
         Log.d(ContentValues.TAG, "Recording Stopped")
-    }catch (e:Exception){
+    } catch (e: Exception) {
         Log.d("TAG", "Recording Stopped Exception : ${e.message}")
     }
 }
 
 
-
 @Preview
 @Composable
-fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
-
-    // Observe the joystick data
-    val leftData by viewModel.leftJoystickData.collectAsState()
-    val rightData by viewModel.rightJoystickData.collectAsState()
-
-    // Combine the joystick data
-    LaunchedEffect(leftData, rightData) {
-        Log.d("LaunchedEffect", "Joystick Left : ${leftData.first}, ${leftData.second}")
-        Log.d("LaunchedEffect", "Joystick Right : ${rightData.first}, ${rightData.second}")
-    }
+fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -207,20 +200,30 @@ fun JetStickUI(modifier: Modifier = Modifier, viewModel: MainViewModel){
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Row (modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically){
+        Row(
+            modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-            JoyStickController(modifier = Modifier.padding(end = 10.dp, top = 35.dp, bottom = 45.dp).weight(0.45f)) { x, y ->
+            JoyStickController(
+                modifier = Modifier
+                    .padding(end = 10.dp, top = 35.dp, bottom = 45.dp)
+            ) { x, y ->
                 Log.d("TAG", "JetStickUI ONE: $x, $y")
-                viewModel.setLeftJoystickData(x, y)
+                viewModel.setJoystickData(LeftJoyStickData(x, y), null)
             }
 
-            JoystickDPad(modifier = Modifier.padding(start = 10.dp, top = 35.dp, bottom = 45.dp).weight(0.45f)) { newCoordinates ->
-                Log.d("TAG", "JetStickUI TWO: ${newCoordinates.x}, ${newCoordinates.y}")
+            JoystickDPad(
+                modifier = Modifier
+                    .padding(end = 10.dp, top = 35.dp, bottom = 45.dp).weight(0.45f), viewModel = viewModel
+            ) { x, y ->
+                Log.d("TAG", "JetStickUI Velocity: $x, $y")
+                viewModel.setJoystickData(null, RightJoyStickData(x, y))
             }
         }
     }
 }
+
 
 
 

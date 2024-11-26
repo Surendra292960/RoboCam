@@ -1,21 +1,45 @@
 package com.example.robocam
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class MainViewModel:ViewModel() {
 
-    private val _leftJoystickData = MutableStateFlow(Pair(0f, 0f))
-    val leftJoystickData = _leftJoystickData.asStateFlow()
+    private var leftJoystickData = LeftJoyStickData(0.0f, 0.0f)
 
-    private val _rightJoystickData = MutableStateFlow(Pair(0f, 0f))
-    val rightJoystickData = _rightJoystickData.asStateFlow()
+    private var rightJoystickData = RightJoyStickData(0.0f, 0.0f)
 
-    fun setLeftJoystickData(x: Float, y: Float) {
-        _leftJoystickData.value = Pair(x, y)
+    private var job: Job? = null
+
+    fun setJoystickData(left: LeftJoyStickData?, right: RightJoyStickData?) {
+        if (left!=null){
+            leftJoystickData = left
+        }
+        if (right!=null){
+            rightJoystickData = right
+        }
+        getJoyStickCoordinates()
     }
 
-    fun setRightJoystickData(x: Float, y: Float) {
-        _rightJoystickData.value = Pair(x, y)
+
+    private fun getJoyStickCoordinates() {
+    job = viewModelScope.launch(IO) {
+        Log.d("TAG", "getJoyStickCoordinates start: ")
+            while (job!!.isActive) {
+                delay(10)
+                Log.d("TAG", "setJoyStickCoordinates: Left => ${leftJoystickData.x} ${leftJoystickData.x}  Right => ${rightJoystickData.x} ${rightJoystickData.x}")
+                if (nonActive()) {
+                    job?.cancelAndJoin()
+                    Log.d("TAG", "getJoyStickCoordinates cancel: ")
+                }
+            }
+        }
     }
+
+    private fun nonActive(): Boolean = leftJoystickData.x==0.0f && leftJoystickData.y==0.0f && rightJoystickData.x==0.0f && rightJoystickData.y==0.0f
 }
