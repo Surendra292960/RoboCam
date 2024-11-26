@@ -149,7 +149,7 @@ fun JoystickDPad(
                     }
                 ) { change, dragAmount ->
                     val currentTime = System.currentTimeMillis()
-                    val elapsedTime = (currentTime - lastTime).toFloat() / 1000f // in seconds
+                    val elapsedTime = (currentTime - lastTime).toFloat() / 100f // in seconds
 
                     // Update raw offsets
                     offsetX += dragAmount.x
@@ -179,7 +179,7 @@ fun JoystickDPad(
 
                         // Reset velocity after a delay
                         viewModel.viewModelScope.launch {
-                            delay(500)
+                            delay(300)
                             velocity(0.0f, 0.0f)
                         }
                     }
