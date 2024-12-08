@@ -1,11 +1,12 @@
 package com.example.robocam.video_stream
 import android.content.Context
+import com.example.robocam.MainViewModel
 import com.example.robocam.video_stream.RecordableSurfaceView.RendererCallbacks
 
 
-class MyGLSurfaceView(context: Context) : RecordableSurfaceView(context), RendererCallbacks{
+class MyGLSurfaceView(context: Context, viewModel: MainViewModel) : RecordableSurfaceView(context), RendererCallbacks{
     // Set the Renderer for drawing on the GLSurfaceView
-    val mRenderer = MyGLRenderer(context)
+    val mRenderer = MyGLRenderer(context, viewModel)
 
     init {
         rendererCallbacks = this

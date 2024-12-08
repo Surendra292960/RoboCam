@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLES20;
 import android.opengl.GLUtils;
+import android.util.Log;
 
 import com.example.robocam.R;
 
@@ -50,6 +51,7 @@ public class TextureHelper {
     public static int loadText(final Context context, String title, String description) {
         final int[] textureHandle = new int[1];
 
+        Log.d("TAG", "loadText: ");
         GLES20.glGenTextures(1, textureHandle, 0);
 
         if (textureHandle[0] != 0) {

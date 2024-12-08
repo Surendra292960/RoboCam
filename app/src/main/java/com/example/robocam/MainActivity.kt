@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -60,7 +61,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Surface(color = Color.Transparent, modifier = Modifier.fillMaxSize()) {
-                OpenGLScreen().also {
+                OpenGLScreen(viewModel).also {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -85,13 +86,13 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-fun OpenGLScreen() {
+fun OpenGLScreen(viewModel: MainViewModel) {
     val context = LocalContext.current as MainActivity
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = {
                 mView.let {
-                    MyGLSurfaceView(context).also { glView ->
+                    MyGLSurfaceView(context, viewModel).also { glView ->
                         mMyGLView = glView
                         mGLView = glView // Store reference to mGLView
                     }
@@ -105,12 +106,12 @@ fun OpenGLScreen() {
             }
         )
 
-        DisplayIcons(context)
+        DisplayIcons(context, viewModel)
     }
 }
 
 @Composable
-fun DisplayIcons(context: Context) {
+fun DisplayIcons(context: Context, viewModel: MainViewModel) {
     var isRecording by remember { mutableStateOf(false) }
     val infiniteTransition = rememberInfiniteTransition(label = "")
 
@@ -131,6 +132,7 @@ fun DisplayIcons(context: Context) {
         Text(
             modifier = Modifier.clickable {
                 mMyGLView?.mRenderer?.isSave = true
+                viewModel.isDialogShowing.postValue(true)
             },
             text = "Show Dialog",
             color = Color.Cyan, fontSize = 15.sp, fontWeight = FontWeight.Bold
@@ -156,6 +158,7 @@ fun DisplayIcons(context: Context) {
                     .scale(flashAnimation)
                     .clickable {
                         // stopRecording()
+                        Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show()
                         isRecording = false
                     }
                     .align(Alignment.BottomStart),
@@ -164,6 +167,18 @@ fun DisplayIcons(context: Context) {
                 tint = Color.Red
             )
         }
+        Icon(
+            modifier = Modifier.padding(start = 70.dp)
+                .size(30.dp)
+                .clickable {
+                    viewModel.takeScreenShot.postValue(true)
+                    Toast.makeText(context, "Screenshot saved successfully", Toast.LENGTH_SHORT).show()
+                }
+                .align(Alignment.BottomStart),
+            painter = painterResource(R.drawable.take_screen_shot),
+            contentDescription = "stop recording",
+            tint = Color.Cyan
+        )
     }
 }
 

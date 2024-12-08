@@ -1,5 +1,6 @@
 package com.example.robocam
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -13,6 +14,9 @@ class MainViewModel:ViewModel() {
     private var leftJoystickData = LeftJoyStickData(0.0f, 0.0f)
 
     private var rightJoystickData = RightJoyStickData(0.0f, 0.0f)
+
+    val isDialogShowing = MutableLiveData(false)
+    val takeScreenShot = MutableLiveData(false)
 
     private var job: Job? = null
 

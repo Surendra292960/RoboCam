@@ -188,7 +188,7 @@ class Triangle(val context: Context) {
         Log.d("TAG", "draw Image Icon: $result")
         // Check if 5 seconds have passed since overlay display started
         if (result && System.currentTimeMillis() - overlayStartTime <= overlayDuration) {
-            drawAlertDilog()
+            drawAlertDialog()
         } else {
             result = false  // Disable icon display after 5 seconds
         }
@@ -217,7 +217,7 @@ class Triangle(val context: Context) {
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
     }
 
-    private fun drawAlertDilog(){
+    private fun drawAlertDialog(){
 
         // Prepare for icon overlay
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)  // Disable depth testing to ensure overlay

@@ -16,7 +16,13 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.IntBuffer
 
-class ImageSquare(context: Context) {
+class ImageSquare(val context: Context) {
+    var result = false
+        set(value) {
+            field = value
+            if (value) overlayStartTime = System.currentTimeMillis() // Set start time when result becomes true
+        }
+
     private var program: Int = 0
     private var positionAttrib: Int = 0
     private var texCoordAttrib: Int = 0
@@ -24,10 +30,20 @@ class ImageSquare(context: Context) {
     private var vertexBuffer: Int = 0
     private var texCoordBuffer: Int = 0
     private var textureID: Int = 0
-    private var textureWidth: Int = 0
-    private var textureHeight: Int = 0
-    private var vertexShader = 0
-    private var fragmentShader = 0
+
+    private var dialogTextureID: Int = 0
+    private var dialogVertexBuffer: Int = 0
+    private var dialogTexCoordBuffer: Int = 0
+
+    // Scale for icon size (adjust these values for desired icon dimensions)
+    private var iconWidthScale = 0.5f  // 30% of screen width
+    private var iconHeightScale = 0.5f // 30% of screen height
+    private var dialogAspectRatio: Float = 1f
+    //private var iconHeightScale = iconWidthScale / dialogAspectRatio
+
+    // Time control
+    private val overlayDuration = 5000L // 5 seconds in milliseconds
+    private var overlayStartTime: Long = 0
 
     private val vertexShaderSource = """
         attribute vec4 position;
@@ -40,19 +56,15 @@ class ImageSquare(context: Context) {
     """.trimIndent()
 
     private val fragmentShaderSource = """
-        #extension GL_OES_EGL_image_external : require
         precision mediump float;
         varying vec2 TexCoordOut;
         uniform vec4 vColor;
         uniform sampler2D textureSampler;
-       
         void main() {
              gl_FragColor = texture2D(textureSampler, TexCoordOut);
         }
-        """.trimIndent()
+    """.trimIndent()
 
-
-    // Initialize vertex buffer with data
     private val verticesCoords = floatArrayOf(
         -1.0f, 1.0f, 0.0f,
         -1.0f, -1.0f, 0.0f,
@@ -60,7 +72,6 @@ class ImageSquare(context: Context) {
         1.0f, 1.0f, 0.0f,
     )
 
-    // Initialize texture coordinate buffer with data
     private val textureCoords = floatArrayOf(
         0.0f, 1.0f,
         1.0f, 1.0f,
@@ -68,13 +79,27 @@ class ImageSquare(context: Context) {
         0.0f, 0.0f,
     )
 
+    // Centered icon vertex coordinates
+    private val dialogVerticesCoords = floatArrayOf(
+        -iconWidthScale, iconHeightScale, - 0.2f,  // Top-left
+        iconWidthScale, iconHeightScale, - 0.2f,   // Top-right
+        iconWidthScale, -iconHeightScale, - 0.2f,  // Bottom-right
+        -iconWidthScale, -iconHeightScale, - 0.2f  // Bottom-left
+    )
+
+    private val dialogTextureCoords = floatArrayOf(
+        0.0f, 0.0f,  // Top-left
+        1.0f, 0.0f,  // Top-right
+        1.0f, 1.0f,  // Bottom-right
+        0.0f, 1.0f   // Bottom-left
+    )
     /*
      * Sets up the drawing object data for use in an OpenGL ES context.
      */
     init {
         // Load shaders and create program
-        vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource)
-        fragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSource)
+        val vertexShader = compileShader(GLES20.GL_VERTEX_SHADER, vertexShaderSource)
+        val fragmentShader = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShaderSource)
         program = GLES20.glCreateProgram()
         GLES20.glAttachShader(program, vertexShader)
         GLES20.glAttachShader(program, fragmentShader)
@@ -149,6 +174,15 @@ class ImageSquare(context: Context) {
         textureBitmap.recycle()
     }
 
+    fun setupDialogTexture(/*bitmap: Bitmap?*/){
+        // dialogTextureID = setupTextureDialog(bitmap)
+        dialogTextureID = TextureHelper.loadText(context, "01234", "01234");
+     /*   dialogTextureID = TextureHelper.loadText(context, "Robot Camera", ("""
+     This is the description of the robot camera. It has multiple features, including AI integration, live streaming, and more.
+     Explore the possibilities!
+     """.trimIndent()))*/
+    }
+
     /**
      * Encapsulates the OpenGL ES instructions for drawing this shape.
      *
@@ -156,80 +190,60 @@ class ImageSquare(context: Context) {
      * this shape.
      */
     fun draw() {
-        Log.d("TAG", "render glBindTexture : $textureID  $textureWidth  $textureHeight")
-        GLES20.glClearColor(1.0f, 0.0f, 0.0f, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
-        // Use program
         GLES20.glUseProgram(program)
-        // Check for OpenGL errors
-        checkGLError()
+        drawMain()
+        Log.d("TAG", "draw Image Icon: $result")
+        // Check if 5 seconds have passed since overlay display started
+        if (result && System.currentTimeMillis() - overlayStartTime <= overlayDuration) {
+            drawAlertDialog()
+        } else {
+            result = false  // Disable icon display after 5 seconds
+        }
 
-        // Enable vertex attribute arrays and set pointers
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, texCoordBuffer)
-        checkFramebufferStatus()
-        GLES20.glEnableVertexAttribArray(texCoordAttrib)
-        GLES20.glVertexAttribPointer(texCoordAttrib, 2, GLES20.GL_FLOAT, false, 0, 0)
-        // Check for OpenGL errors
-        checkGLError()
+        // Clean up
+        GLES20.glDisableVertexAttribArray(positionAttrib)
+        GLES20.glDisableVertexAttribArray(texCoordAttrib)
+        GLES20.glEnable(GLES20.GL_DEPTH_TEST)  // Re-enable depth testing if needed
+        GLES20.glDisable(GLES20.GL_BLEND)  // Disable blending
 
+        checkGLError()
+    }
+
+    private fun drawMain() {
+        // Draw main texture
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBuffer)
-        checkFramebufferStatus()
         GLES20.glEnableVertexAttribArray(positionAttrib)
         GLES20.glVertexAttribPointer(positionAttrib, 3, GLES20.GL_FLOAT, false, 0, 0)
 
-        // Check for OpenGL errors
-        checkGLError()
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, texCoordBuffer)
+        GLES20.glEnableVertexAttribArray(texCoordAttrib)
+        GLES20.glVertexAttribPointer(texCoordAttrib, 2, GLES20.GL_FLOAT, false, 0, 0)
 
-        // GL bind texture
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureID)
         GLES20.glUniform1i(textureSamplerLocation, 0)
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, textureID)
-        GLES20.glUniform1i(textureSamplerLocation, 0)
-        // Check for OpenGL errors
-        checkGLError()
-
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
-
-        // Check for OpenGL errors
-        checkGLError()
-
-        // Draw
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
-        // Check for OpenGL errors
-        checkGLError()
-
-        // Release the GL bind texture
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
-        // Check for OpenGL errors
-        checkGLError()
     }
 
-    fun renderBitmap(bitmap: Bitmap) {
-        // Create a texture handle
-        val textureHandle = IntArray(1)
-        GLES20.glGenTextures(1, textureHandle, 0)
+    private fun drawAlertDialog(){
 
-        // Bind the texture
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureHandle[0])
+        // Prepare for icon overlay
+        GLES20.glDisable(GLES20.GL_DEPTH_TEST)  // Disable depth testing to ensure overlay
+        GLES20.glEnable(GLES20.GL_BLEND)  // Enable blending for transparency
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
-        // Set texture parameters
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+        // Draw icon overlay in center
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, dialogVertexBuffer)
+        GLES20.glEnableVertexAttribArray(positionAttrib)
+        GLES20.glVertexAttribPointer(positionAttrib, 3, GLES20.GL_FLOAT, false, 0, 0)
 
-        // Load the bitmap into the texture
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, dialogTexCoordBuffer)
+        GLES20.glEnableVertexAttribArray(texCoordAttrib)
+        GLES20.glVertexAttribPointer(texCoordAttrib, 2, GLES20.GL_FLOAT, false, 0, 0)
 
-        // Now draw the texture on the OpenGL surface
-        // Set up your shader program and draw the texture
-        // ...
-
-        // Clean up
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0) // Unbind the texture
-        GLES20.glDeleteTextures(1, textureHandle, 0) // Delete the texture handle
-
-        // You can recycle the bitmap here if you're done with it
-        // bitmap.recycle() // Ensure this is called only after rendering is complete
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, dialogTextureID)
+        GLES20.glUniform1i(textureSamplerLocation, 0)
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, 4)
     }
+
 }

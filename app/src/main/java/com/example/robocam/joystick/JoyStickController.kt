@@ -34,12 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.pow
@@ -269,4 +264,48 @@ fun ArchButton(onClick: () -> Unit) {
             )
         }
     }
+
+
+
+   /* Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .align(alignment = Alignment.BottomCenter)
+            .requiredSize(
+                width = 120.dp,
+                height = 120.dp,
+            )
+            .drawBehind {
+                // Draw the outer circle
+                drawCircle(color = Color.LightGray, radius = circleRadius, center = center)
+                // Draw the inner joystick circle
+                drawCircle(color = Color.Gray, radius = joystickRadius, center = joystickOffset)
+                // Calculate the distance from the center to the joystick
+                val distance = (joystickOffset - center).getDistance()
+                val angle = atan2(joystickOffset.y - center.y, joystickOffset.x - center.x) * (180 / PI.toFloat())
+                val startAngle = angle - 30f
+                val sweepAngle = 60f
+                val path = Path().apply {
+                    addArc(
+                        Rect(
+                            center.x - circleRadius,
+                            center.y - circleRadius,
+                            center.x + circleRadius,
+                            center.y + circleRadius
+                        ), startAngle, sweepAngle
+                    )
+                }
+                // Draw the arc only when the joystick is at the edge
+                if (isDragging) {
+                    Log.d("TAG", "JoyStickController drawBehind : ")
+                    //haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    drawPath(
+                        path = path,
+                        color = Color.Cyan,
+                        //style = Stroke(width = 5f)
+                        style = Stroke(width = 20f, pathEffect = PathEffect.cornerPathEffect(joystickRadius), cap = StrokeCap.Round),
+                    )
+                }
+            }
+    )*/
 }
