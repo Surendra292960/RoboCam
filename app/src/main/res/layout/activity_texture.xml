@@ -4,9 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.opengl.GLSurfaceView
+    <!--<android.opengl.GLSurfaceView
         android:id="@+id/glSurfaceView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" />-->
+
+    <com.example.robocam.utils.HalfMoonCrescentView
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:background="@color/teal_200"/>
+
 
 </LinearLayout>
